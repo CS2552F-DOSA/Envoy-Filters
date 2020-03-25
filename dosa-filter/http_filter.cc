@@ -4,6 +4,8 @@
 
 #include "envoy/server/filter_config.h"
 
+#include "absl/strings/str_join.h"
+
 namespace Envoy {
 namespace Http {
 
@@ -17,8 +19,13 @@ HttpSampleDecoderFilter::~HttpSampleDecoderFilter() {}
 
 void HttpSampleDecoderFilter::onDestroy() {}
 
-FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap&, bool) {
+FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& headers, bool) {
   // headers.setHost();
+  auto parts = StringUtil::splitToken(headers.Host()->value().getStringView(), ":");
+  ASSERT(!parts.empty() && parts.size() <= 2);
+  headers.setHost(parts.size() == 2
+          ? absl::StrJoin(parts, "_test:")
+          : absl::StrCat(headers.Host()->value().getStringView(), "_test"));
   return FilterHeadersStatus::Continue;
 }
 
