@@ -12,7 +12,7 @@ envoy_cc_binary(
     name = "envoy",
     repository = "@envoy",
     deps = [
-        ":http_filter_config",
+        ":dosa_filter_config",
         "@envoy//source/exe:envoy_main_entry_lib",
     ],
 )
@@ -31,11 +31,11 @@ envoy_cc_library(
 )
 
 envoy_cc_library(
-    name = "http_filter_config",
+    name = "dosa_filter_config",
     srcs = ["http_filter_config.cc"],
     repository = "@envoy",
     deps = [
-        ":http_filter_lib",
+        ":dosa_filter_lib",
         "@envoy//include/envoy/server:filter_config_interface",
     ],
 )

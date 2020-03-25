@@ -23,7 +23,7 @@ private:
 
 typedef std::shared_ptr<HttpSampleDecoderFilterConfig> HttpSampleDecoderFilterConfigSharedPtr;
 
-class HttpSampleDecoderFilter : public StreamEncoderFilter {
+class HttpSampleDecoderFilter : public StreamDecoderFilter {
 public:
   HttpSampleDecoderFilter(HttpSampleDecoderFilterConfigSharedPtr);
   ~HttpSampleDecoderFilter();
@@ -31,22 +31,16 @@ public:
   // Http::StreamFilterBase
   void onDestroy() override;
 
-  // // Http::StreamDecoderFilter
-  // FilterHeadersStatus decodeHeaders(RequestHeaderMap&, bool) override;
-  // FilterDataStatus decodeData(Buffer::Instance&, bool) override;
-  // FilterTrailersStatus decodeTrailers(RequestTrailerMap&) override;
-  // void setDecoderFilterCallbacks(StreamDecoderFilterCallbacks&) override;
-
-  // Http::StreamEncoderFilter
-  FilterHeadersStatus encodeHeaders(RequestHeaderMap&, bool) override;
-  FilterDataStatus encodeData(Buffer::Instance&, bool) override;
-  FilterTrailersStatus encodeTrailers(RequestTrailerMap&) override;
-  // void setDecoderFilterCallbacks(StreamDecoderFilterCallbacks&) override;
+  // Http::StreamDecoderFilter
+  FilterHeadersStatus decodeHeaders(RequestHeaderMap&, bool) override;
+  FilterDataStatus decodeData(Buffer::Instance&, bool) override;
+  FilterTrailersStatus decodeTrailers(RequestTrailerMap&) override;
+  void setDecoderFilterCallbacks(StreamDecoderFilterCallbacks&) override;
 
 
 private:
   const HttpSampleDecoderFilterConfigSharedPtr config_;
-  // StreamDecoderFilterCallbacks* decoder_callbacks_;
+  StreamDecoderFilterCallbacks* decoder_callbacks_;
 
   // const LowerCaseString headerKey() const;
   // const std::string headerValue() const;

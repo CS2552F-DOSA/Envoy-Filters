@@ -8,8 +8,7 @@ namespace Envoy {
 namespace Http {
 
 HttpSampleDecoderFilterConfig::HttpSampleDecoderFilterConfig(
-    const sample::Decoder& proto_config)
-    : key_(proto_config.key()), val_(proto_config.val()) {}
+    const sample::Decoder&){}
 
 HttpSampleDecoderFilter::HttpSampleDecoderFilter(HttpSampleDecoderFilterConfigSharedPtr config)
     : config_(config) {}
@@ -18,16 +17,21 @@ HttpSampleDecoderFilter::~HttpSampleDecoderFilter() {}
 
 void HttpSampleDecoderFilter::onDestroy() {}
 
-FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(RequestHeaderMap& headers, bool) {
+FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap&, bool) {
+  // headers.setHost();
   return FilterHeadersStatus::Continue;
 }
 
-FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance&, bool) {
+FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bool) {
   return FilterDataStatus::Continue;
 }
 
-FilterTrailersStatus HttpSampleDecoderFilter::encodeTrailers(RequestTrailerMap&) {
+FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&) {
   return FilterTrailersStatus::Continue;
+}
+
+void HttpSampleDecoderFilter::setDecoderFilterCallbacks(StreamDecoderFilterCallbacks& callbacks) {
+  decoder_callbacks_ = &callbacks;
 }
 
 } // namespace Http
