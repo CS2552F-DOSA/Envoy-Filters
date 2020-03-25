@@ -10,13 +10,13 @@ also provided.
 To build the Envoy static binary:
 
 1. `git submodule update --init`
-2. `bazel build //http-filter-example:envoy`
+2. `bazel build //dosa-filter:envoy`
 
-## Testing
+<!-- ## Testing
 
 To run the `sample` integration test:
 
-`bazel test //http-filter-example:http_filter_integration_test`
+`bazel test //http-filter-example:http_filter_integration_test` -->
 
 ## How it works
 
