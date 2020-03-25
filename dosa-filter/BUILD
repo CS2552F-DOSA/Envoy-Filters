@@ -4,7 +4,6 @@ load(
     "@envoy//bazel:envoy_build_system.bzl",
     "envoy_cc_binary",
     "envoy_cc_library",
-    "envoy_cc_test",
 )
 
 load("@envoy_api//bazel:api_build_system.bzl", "api_proto_package")
@@ -21,7 +20,7 @@ envoy_cc_binary(
 api_proto_package()
 
 envoy_cc_library(
-    name = "http_filter_lib",
+    name = "dosa_filter_lib",
     srcs = ["http_filter.cc"],
     hdrs = ["http_filter.h"],
     repository = "@envoy",
@@ -38,15 +37,5 @@ envoy_cc_library(
     deps = [
         ":http_filter_lib",
         "@envoy//include/envoy/server:filter_config_interface",
-    ],
-)
-
-envoy_cc_test(
-    name = "http_filter_integration_test",
-    srcs = ["http_filter_integration_test.cc"],
-    repository = "@envoy",
-    deps = [
-        ":http_filter_config",
-        "@envoy//test/integration:http_integration_lib",
     ],
 )

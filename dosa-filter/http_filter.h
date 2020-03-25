@@ -4,7 +4,7 @@
 
 #include "envoy/server/filter_config.h"
 
-#include "http-filter-example/http_filter.pb.h"
+#include "dosa-filter/http_filter.pb.h"
 
 namespace Envoy {
 namespace Http {
@@ -13,17 +13,17 @@ class HttpSampleDecoderFilterConfig {
 public:
   HttpSampleDecoderFilterConfig(const sample::Decoder& proto_config);
 
-  const std::string& key() const { return key_; }
-  const std::string& val() const { return val_; }
+  // const std::string& key() const { return key_; }
+  // const std::string& val() const { return val_; }
 
 private:
-  const std::string key_;
-  const std::string val_;
+  // const std::string key_;
+  // const std::string val_;
 };
 
 typedef std::shared_ptr<HttpSampleDecoderFilterConfig> HttpSampleDecoderFilterConfigSharedPtr;
 
-class HttpSampleDecoderFilter : public StreamDecoderFilter {
+class HttpSampleDecoderFilter : public StreamEncoderFilter {
 public:
   HttpSampleDecoderFilter(HttpSampleDecoderFilterConfigSharedPtr);
   ~HttpSampleDecoderFilter();
@@ -31,18 +31,25 @@ public:
   // Http::StreamFilterBase
   void onDestroy() override;
 
-  // Http::StreamDecoderFilter
-  FilterHeadersStatus decodeHeaders(RequestHeaderMap&, bool) override;
-  FilterDataStatus decodeData(Buffer::Instance&, bool) override;
-  FilterTrailersStatus decodeTrailers(RequestTrailerMap&) override;
-  void setDecoderFilterCallbacks(StreamDecoderFilterCallbacks&) override;
+  // // Http::StreamDecoderFilter
+  // FilterHeadersStatus decodeHeaders(RequestHeaderMap&, bool) override;
+  // FilterDataStatus decodeData(Buffer::Instance&, bool) override;
+  // FilterTrailersStatus decodeTrailers(RequestTrailerMap&) override;
+  // void setDecoderFilterCallbacks(StreamDecoderFilterCallbacks&) override;
+
+  // Http::StreamEncoderFilter
+  FilterHeadersStatus encodeHeaders(RequestHeaderMap&, bool) override;
+  FilterDataStatus encodeData(Buffer::Instance&, bool) override;
+  FilterTrailersStatus encodeTrailers(RequestTrailerMap&) override;
+  // void setDecoderFilterCallbacks(StreamDecoderFilterCallbacks&) override;
+
 
 private:
   const HttpSampleDecoderFilterConfigSharedPtr config_;
-  StreamDecoderFilterCallbacks* decoder_callbacks_;
+  // StreamDecoderFilterCallbacks* decoder_callbacks_;
 
-  const LowerCaseString headerKey() const;
-  const std::string headerValue() const;
+  // const LowerCaseString headerKey() const;
+  // const std::string headerValue() const;
 };
 
 } // namespace Http

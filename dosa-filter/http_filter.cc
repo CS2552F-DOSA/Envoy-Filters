@@ -18,31 +18,16 @@ HttpSampleDecoderFilter::~HttpSampleDecoderFilter() {}
 
 void HttpSampleDecoderFilter::onDestroy() {}
 
-const LowerCaseString HttpSampleDecoderFilter::headerKey() const {
-  return LowerCaseString(config_->key());
-}
-
-const std::string HttpSampleDecoderFilter::headerValue() const {
-  return config_->val();
-}
-
-FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& headers, bool) {
-  // add a header
-  headers.addCopy(headerKey(), headerValue());
-
+FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(RequestHeaderMap& headers, bool) {
   return FilterHeadersStatus::Continue;
 }
 
-FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bool) {
+FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance&, bool) {
   return FilterDataStatus::Continue;
 }
 
-FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&) {
+FilterTrailersStatus HttpSampleDecoderFilter::encodeTrailers(RequestTrailerMap&) {
   return FilterTrailersStatus::Continue;
-}
-
-void HttpSampleDecoderFilter::setDecoderFilterCallbacks(StreamDecoderFilterCallbacks& callbacks) {
-  decoder_callbacks_ = &callbacks;
 }
 
 } // namespace Http

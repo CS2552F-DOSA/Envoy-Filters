@@ -2,8 +2,8 @@
 
 #include "envoy/registry/registry.h"
 
-#include "http-filter-example/http_filter.pb.h"
-#include "http-filter-example/http_filter.pb.validate.h"
+#include "dosa-filter/http_filter.pb.h"
+#include "dosa-filter/http_filter.pb.validate.h"
 #include "http_filter.h"
 
 namespace Envoy {
@@ -38,7 +38,7 @@ private:
 
     return [config](Http::FilterChainFactoryCallbacks& callbacks) -> void {
       auto filter = new Http::HttpSampleDecoderFilter(config);
-      callbacks.addStreamDecoderFilter(Http::StreamDecoderFilterSharedPtr{filter});
+      callbacks.addStreamEncoderFilter(Http::StreamEncoderFilterSharedPtr{filter});
     };
   }
 };
