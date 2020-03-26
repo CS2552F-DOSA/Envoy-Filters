@@ -10,7 +10,7 @@ namespace Envoy {
 namespace Http {
 
 HttpSampleDecoderFilterConfig::HttpSampleDecoderFilterConfig(
-    const sample::Decoder&){}
+    const dosa::Dosa&){}
 
 HttpSampleDecoderFilter::HttpSampleDecoderFilter(HttpSampleDecoderFilterConfigSharedPtr config)
     : config_(config) {}

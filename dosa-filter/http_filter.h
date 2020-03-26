@@ -11,7 +11,7 @@ namespace Http {
 
 class HttpSampleDecoderFilterConfig {
 public:
-  HttpSampleDecoderFilterConfig(const sample::Decoder& proto_config);
+  HttpSampleDecoderFilterConfig(const dosa::Dosa& proto_config);
 
   // const std::string& key() const { return key_; }
   // const std::string& val() const { return val_; }

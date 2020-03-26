@@ -16,7 +16,7 @@ public:
                                                      const std::string&,
                                                      FactoryContext& context) override {
 
-    return createFilter(Envoy::MessageUtil::downcastAndValidate<const sample::Decoder&>(
+    return createFilter(Envoy::MessageUtil::downcastAndValidate<const dosa::Dosa&>(
                             proto_config, context.messageValidationVisitor()),
                         context);
   }
@@ -25,13 +25,13 @@ public:
    *  Return the Protobuf Message that represents your config incase you have config proto
    */
   ProtobufTypes::MessagePtr createEmptyConfigProto() override {
-    return ProtobufTypes::MessagePtr{new sample::Decoder()};
+    return ProtobufTypes::MessagePtr{new dosa::Dosa()};
   }
 
-  std::string name() const override { return "sample"; }
+  std::string name() const override { return "dosa"; }
 
 private:
-  Http::FilterFactoryCb createFilter(const sample::Decoder& proto_config, FactoryContext&) {
+  Http::FilterFactoryCb createFilter(const dosa::Dosa& proto_config, FactoryContext&) {
     Http::HttpSampleDecoderFilterConfigSharedPtr config =
         std::make_shared<Http::HttpSampleDecoderFilterConfig>(
             Http::HttpSampleDecoderFilterConfig(proto_config));
