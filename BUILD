@@ -6,8 +6,6 @@ load(
     "envoy_cc_library",
 )
 
-load("@envoy_api//bazel:api_build_system.bzl", "api_proto_package")
-
 envoy_cc_binary(
     name = "envoy",
     repository = "@envoy",
@@ -17,15 +15,12 @@ envoy_cc_binary(
     ],
 )
 
-api_proto_package()
-
 envoy_cc_library(
     name = "dosa_filter_lib",
     srcs = ["http_filter.cc"],
     hdrs = ["http_filter.h"],
     repository = "@envoy",
     deps = [
-        ":pkg_cc_proto",
         "@envoy//source/exe:envoy_common_lib",
     ],
 )
