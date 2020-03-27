@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package dosa;
+
+import "validate/validate.proto";
+
+message Dosa {
+    // string key = 1 [(validate.rules).string.min_bytes = 1];
+    // string val = 2 [(validate.rules).string.min_bytes = 1];
+    string cluster = 1 [(validate.rules).string = {min_bytes: 1}];
+}
