@@ -2,9 +2,10 @@
 
 #include <string>
 
-#include "envoy/server/http_filter_config.h"
+#include "envoy/http/filter.h"
+#include "envoy/upstream/cluster_manager.h"
 
-#include "http_filter.pb.h"
+#include "common/common/logger.h"
 
 namespace Envoy {
 namespace Http {
