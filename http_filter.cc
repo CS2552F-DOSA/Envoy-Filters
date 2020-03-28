@@ -7,8 +7,6 @@
 #include "common/http/message_impl.h"
 #include "common/http/utility.h"
 
-#include "absl/strings/str_join.h"
-
 namespace Envoy {
 namespace Http {
 
