@@ -11,6 +11,16 @@
 namespace Envoy {
 namespace Http {
 
+static class DosaEngine {
+public:
+  int getCount() {
+    return count_ ++;
+  }
+private:
+  int count_ = 0;
+  unorderd_set<string> cache_;
+} engine_;
+
 
 /**
  * Configuration for the extauth filter.
@@ -44,16 +54,6 @@ private:
   DosaEngine& engine_;
   StreamDecoderFilterCallbacks* decoder_callbacks_{};
 };
-
-static class DosaEngine {
-public:
-  int getCount() {
-    return count_ ++;
-  }
-private:
-  int count_ = 0;
-  unorderd_set<string> cache_;
-} engine_;
 
 } // namespace Http
 } // namespace Envoy
