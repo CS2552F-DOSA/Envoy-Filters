@@ -22,7 +22,7 @@ HttpSampleDecoderFilter::~HttpSampleDecoderFilter() {}
 
 void HttpSampleDecoderFilter::onDestroy() {}
 
-FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& headers, bool) {
+FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(HeaderMap& headers, bool) {
   if(false) {
     auto parts = StringUtil::splitToken(headers.Host()->value().getStringView(), ":");
     ASSERT(!parts.empty() && parts.size() <= 2);
@@ -37,7 +37,7 @@ FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bool) {
   return FilterDataStatus::Continue;
 }
 
-FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(ResponseHeaderMap&) {
+FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(HeaderMap&) {
   return FilterTrailersStatus::Continue;
 }
 

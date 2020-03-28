@@ -17,7 +17,7 @@ const std::string EXTAUTH_HTTP_FILTER_SCHEMA(R"EOF(
   "required" : ["cluster"],
   "additionalProperties" : false
 }
-)EOF");
+)EOF");"
 
 Http::FilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(HttpFilterType type,
                                                           const std::string& name,
@@ -31,8 +31,8 @@ Http::FilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(Http
 
     Http::DosaConfigConstSharedPtr config(new Http::ExtAuthConfig{
         server.clusterManager(), json_config.getString("cluster")});
-    return [config](Http::FilterChainFactoryCallbacks& callbacks) -> void {
-      callbacks.addStreamFilter(Http::StreamFilterSharedPtr{new Http::ExtAuth(config)});
+    return [config, engine_](Http::FilterChainFactoryCallbacks& callbacks) -> void {
+      callbacks.addStreamFilter(Http::StreamFilterSharedPtr{new Http::ExtAuth(config), engine_});
     };                                                        
 }
 
@@ -41,6 +41,10 @@ Http::FilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(Http
  */
 static RegisterHttpFilterConfigFactory<HttpSampleDecoderFilterConfig>
     register_;
+
+static class DosaEngine {
+  int count=0;
+} engine_;
 
 } // namespace Configuration
 } // namespace Server
