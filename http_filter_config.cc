@@ -1,7 +1,5 @@
 #include <string>
 
-#include "envoy/registry/registry.h"
-
 #include "http_filter_config.h"
 #include "http_filter.h"
 
