@@ -18,7 +18,7 @@ public:
   }
 private:
   int count_ = 0;
-  std::unordered_set<string> cache_;
+  std::unordered_set<std::string> cache_;
 } engine_;
 
 

@@ -23,7 +23,7 @@ HttpSampleDecoderFilter::~HttpSampleDecoderFilter() {}
 void HttpSampleDecoderFilter::onDestroy() {}
 
 FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(HeaderMap& headers, bool) {
-  log().info("The count is {}", engine_.getCount())
+  log().info("The count is {}", engine_.getCount());
   if(false) {
     auto parts = StringUtil::splitToken(headers.Host()->value().getStringView(), ":");
     ASSERT(!parts.empty() && parts.size() <= 2);
