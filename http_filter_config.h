@@ -18,8 +18,6 @@ public:
                                             Server::Instance& server) override;
 };
 
-typedef std::shared_ptr<HttpSampleDecoderFilterConfig> HttpSampleDecoderFilterConfigSharedPtr;
-
 } // Configuration
 } // Server
 } // Envoy

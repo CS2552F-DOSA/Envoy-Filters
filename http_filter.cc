@@ -14,7 +14,7 @@ HttpSampleDecoderFilterConfig::HttpSampleDecoderFilterConfig(
     const dosa::Dosa&){}
 
 HttpSampleDecoderFilter::HttpSampleDecoderFilter(
-    HttpSampleDecoderFilterConfigSharedPtr config,
+    DosaConfigConstSharedPtr config,
     DosaEngine& engine)
     : config_(config), engine_(engine){}
 

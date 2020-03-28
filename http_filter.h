@@ -24,24 +24,24 @@ typedef std::shared_ptr<const DosaConfig> DosaConfigConstSharedPtr;
 class HttpSampleDecoderFilter : public Logger::Loggable<Logger::Id::filter>,
                                 public Http::StreamFilter {
 public:
-  HttpSampleDecoderFilter(HttpSampleDecoderFilterConfigSharedPtr, DosaEngine&);
+  HttpSampleDecoderFilter(DosaConfigConstSharedPtr, DosaEngine&);
   ~HttpSampleDecoderFilter();
 
   // Http::StreamFilterBase
   void onDestroy() override;
 
   // Http::StreamDecoderFilter
-  Http::FilterHeadersStatus decodeHeaders(Http::RequestHeaderMap&, bool) override;
+  Http::FilterHeadersStatus decodeHeaders(HeaderMap&, bool) override;
   Http::FilterDataStatus decodeData(Buffer::Instance&, bool) override;
 
-  Http::FilterHeadersStatus encodeHeaders(Http::ResponseHeaderMap&, bool) override;
+  Http::FilterHeadersStatus encodeHeaders(HeaderMap&, bool) override;
   Http::FilterDataStatus encodeData(Buffer::Instance&, bool) override;
 
   void setDecoderFilterCallbacks(StreamDecoderFilterCallbacks&) override;
 private:
-  const HttpSampleDecoderFilterConfigSharedPtr config_;
+  const DosaConfigConstSharedPtr config_;
   DosaEngine& engine_;
-
+  StreamDecoderFilterCallbacks* decoder_callbacks_{};
 };
 
 } // namespace Http
