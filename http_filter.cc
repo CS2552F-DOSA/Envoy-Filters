@@ -2,7 +2,7 @@
 
 #include "http_filter.h"
 
-#include "envoy/server/filter_config.h"
+#include "envoy/server/http_filter_config.h"
 
 #include "absl/strings/str_join.h"
 

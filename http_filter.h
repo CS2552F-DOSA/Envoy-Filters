@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "envoy/server/filter_config.h"
+#include "envoy/server/http_filter_config.h"
 
 #include "http_filter.pb.h"
 
