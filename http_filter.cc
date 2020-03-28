@@ -6,6 +6,7 @@
 #include "common/common/enum_to_int.h"
 #include "common/http/message_impl.h"
 #include "common/http/utility.h"
+#include "common/common/utility.h"
 
 namespace Envoy {
 namespace Http {
