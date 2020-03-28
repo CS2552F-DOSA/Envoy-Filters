@@ -1,4 +1,5 @@
 #include <string>
+#include <unordered_set>
 
 #include "http_filter_config.h"
 #include "http_filter.h"
@@ -41,15 +42,6 @@ Http::FilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(Http
  */
 static RegisterHttpFilterConfigFactory<HttpSampleDecoderFilterConfig>
     register_;
-
-static class DosaEngine {
-public:
-  int getCount() {
-    return count_ ++;
-  }
-private:
-  int count_ = 0;
-} engine_;
 
 } // namespace Configuration
 } // namespace Server

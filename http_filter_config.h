@@ -18,6 +18,16 @@ public:
                                             Server::Instance& server) override;
 };
 
+static class DosaEngine {
+public:
+  int getCount() {
+    return count_ ++;
+  }
+private:
+  int count_ = 0;
+  unorderd_set<string> cache_;
+} engine_;
+
 } // Configuration
 } // Server
 } // Envoy
