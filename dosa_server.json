@@ -1,0 +1,87 @@
+{
+  "listeners": [
+    {
+      "address": "tcp://0.0.0.0:9999",
+      "use_original_dst": true,
+      "filters": [
+        {
+          "type": "read",
+          "name": "http_connection_manager",
+          "config": {
+            "codec_type": "auto",
+            "stat_prefix": "ingress_http",
+            "access_log": [
+              {
+                "path": "/tmp/access_log"
+              }
+            ],
+            "route_config": {
+              "virtual_hosts": [
+                {
+                  "name": "api_gateway",
+                  "domains": ["*"],
+                  "routes": [
+                    {
+                      "prefix": "/service",
+                      "cluster": "httpbin",
+                      "auto_host_rewrite": true,
+                      "prefix_rewrite": "/"
+                    },
+                    {
+                      "prefix": "/auth",
+                      "cluster": "httpbin",
+                      "auto_host_rewrite": true,
+                      "prefix_rewrite": "/"
+                    }
+                  ]
+                }
+              ]
+            },
+            "filters": [
+              {
+                "type": "decoder",
+                "name": "dosa",
+                "config": {
+                  "cluster": "auth"
+                }
+              },
+              {
+                "type": "decoder",
+                "name": "router",
+                "config": {}
+              }
+            ]
+          }
+        }
+      ]
+    }],
+
+  "admin": { "access_log_path": "/dev/null", "profile_path": "{{ test_tmpdir }}/envoy.prof", "address": "tcp://127.0.0.1:0" },
+
+  "cluster_manager": {
+    "clusters": [
+      {
+        "name": "httpbin",
+        "type": "logical_dns",
+        "connect_timeout_ms": 5000,
+        "lb_type": "random",
+        "hosts": [
+          {
+            "url": "tcp://httpbin.org:80"
+          }
+        ]
+      },
+      {
+        "name": "auth",
+        "type": "logical_dns",
+        "connect_timeout_ms": 5000,
+        "lb_type": "random",
+        "hosts": [
+          {
+            "url": "tcp://docker.for.mac.localhost:3000"
+          }
+        ]
+      }
+    ]
+  }
+}

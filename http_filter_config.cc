@@ -2,51 +2,46 @@
 
 #include "envoy/registry/registry.h"
 
-#include "http_filter.pb.h"
-#include "http_filter.pb.validate.h"
+#include "http_filter_config.h"
 #include "http_filter.h"
 
 namespace Envoy {
 namespace Server {
 namespace Configuration {
 
-class HttpSampleDecoderFilterConfig : public NamedHttpFilterConfigFactory {
-public:
-  Http::FilterFactoryCb createFilterFactoryFromProto(const Protobuf::Message& proto_config,
-                                                     const std::string&,
-                                                     FactoryContext& context) override {
+const std::string EXTAUTH_HTTP_FILTER_SCHEMA(R"EOF(
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type" : "object",
+  "properties" : {
+    "cluster" : {"type" : "string"}
+  },
+  "required" : ["cluster"],
+  "additionalProperties" : false
+}
+)EOF");
 
-    return createFilter(Envoy::MessageUtil::downcastAndValidate<const dosa::Dosa&>(
-                            proto_config, context.messageValidationVisitor()),
-                        context);
-  }
+Http::FilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(HttpFilterType type,
+                                                          const std::string& name,
+                                                          const Json::Object& json_config,
+                                                          const std::string& stats_prefix,
+                                                          Server::Instance& server){
+    if (name != "dosa") {
+      return nullptr;
+    }
+    json_config.validateSchema(EXTAUTH_HTTP_FILTER_SCHEMA);
 
-  /**
-   *  Return the Protobuf Message that represents your config incase you have config proto
-   */
-  ProtobufTypes::MessagePtr createEmptyConfigProto() override {
-    return ProtobufTypes::MessagePtr{new dosa::Dosa()};
-  }
-
-  std::string name() const override { return "dosa"; }
-
-private:
-  Http::FilterFactoryCb createFilter(const dosa::Dosa& proto_config, FactoryContext&) {
-    Http::HttpSampleDecoderFilterConfigSharedPtr config =
-        std::make_shared<Http::HttpSampleDecoderFilterConfig>(
-            Http::HttpSampleDecoderFilterConfig(proto_config));
-
+    Http::DosaConfigConstSharedPtr config(new Http::ExtAuthConfig{
+        server.clusterManager(), json_config.getString("cluster")});
     return [config](Http::FilterChainFactoryCallbacks& callbacks) -> void {
-      auto filter = new Http::HttpSampleDecoderFilter(config);
-      callbacks.addStreamDecoderFilter(Http::StreamDecoderFilterSharedPtr{filter});
-    };
-  }
-};
+      callbacks.addStreamFilter(Http::StreamFilterSharedPtr{new Http::ExtAuth(config)});
+    };                                                        
+}
 
 /**
  * Static registration for this sample filter. @see RegisterFactory.
  */
-static Registry::RegisterFactory<HttpSampleDecoderFilterConfig, NamedHttpFilterConfigFactory>
+static RegisterHttpFilterConfigFactory<HttpSampleDecoderFilterConfig>
     register_;
 
 } // namespace Configuration

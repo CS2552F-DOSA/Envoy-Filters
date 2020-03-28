@@ -12,8 +12,10 @@ namespace Http {
 HttpSampleDecoderFilterConfig::HttpSampleDecoderFilterConfig(
     const dosa::Dosa&){}
 
-HttpSampleDecoderFilter::HttpSampleDecoderFilter(HttpSampleDecoderFilterConfigSharedPtr config)
-    : config_(config) {}
+HttpSampleDecoderFilter::HttpSampleDecoderFilter(
+    HttpSampleDecoderFilterConfigSharedPtr config,
+    DosaEngine& engine)
+    : config_(config), engine_(engine){}
 
 HttpSampleDecoderFilter::~HttpSampleDecoderFilter() {}
 
@@ -34,7 +36,7 @@ FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bool) {
   return FilterDataStatus::Continue;
 }
 
-FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&) {
+FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(ResponseHeaderMap&) {
   return FilterTrailersStatus::Continue;
 }
 

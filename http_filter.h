@@ -9,36 +9,38 @@
 namespace Envoy {
 namespace Http {
 
-class HttpSampleDecoderFilterConfig {
-public:
-  HttpSampleDecoderFilterConfig(const dosa::Dosa& proto_config);
 
-private:
+/**
+ * Configuration for the extauth filter.
+ */
+struct DosaConfig {
+  Upstream::ClusterManager& cm_;
+  std::string cluster_;
 };
 
-typedef std::shared_ptr<HttpSampleDecoderFilterConfig> HttpSampleDecoderFilterConfigSharedPtr;
+typedef std::shared_ptr<const DosaConfig> DosaConfigConstSharedPtr;
 
-class HttpSampleDecoderFilter : public StreamDecoderFilter {
+class HttpSampleDecoderFilter : public Logger::Loggable<Logger::Id::filter>,
+                                public Http::StreamFilter {
 public:
-  HttpSampleDecoderFilter(HttpSampleDecoderFilterConfigSharedPtr);
+  HttpSampleDecoderFilter(HttpSampleDecoderFilterConfigSharedPtr, DosaEngine&);
   ~HttpSampleDecoderFilter();
 
   // Http::StreamFilterBase
   void onDestroy() override;
 
   // Http::StreamDecoderFilter
-  FilterHeadersStatus decodeHeaders(RequestHeaderMap&, bool) override;
-  FilterDataStatus decodeData(Buffer::Instance&, bool) override;
-  FilterTrailersStatus decodeTrailers(RequestTrailerMap&) override;
+  Http::FilterHeadersStatus decodeHeaders(Http::RequestHeaderMap&, bool) override;
+  Http::FilterDataStatus decodeData(Buffer::Instance&, bool) override;
+
+  Http::FilterHeadersStatus encodeHeaders(Http::ResponseHeaderMap&, bool) override;
+  Http::FilterDataStatus encodeData(Buffer::Instance&, bool) override;
+
   void setDecoderFilterCallbacks(StreamDecoderFilterCallbacks&) override;
-
-
 private:
   const HttpSampleDecoderFilterConfigSharedPtr config_;
-  StreamDecoderFilterCallbacks* decoder_callbacks_;
+  DosaEngine& engine_;
 
-  // const LowerCaseString headerKey() const;
-  // const std::string headerValue() const;
 };
 
 } // namespace Http
