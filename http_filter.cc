@@ -26,11 +26,11 @@ void HttpSampleDecoderFilter::onDestroy() {}
 FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(HeaderMap& headers, bool) {
   log().info("The count is {}", engine_.getCount());
   if(false) {
-    auto parts = StringUtil::splitToken(headers.Host()->value().getStringView(), ":");
-    ASSERT(!parts.empty() && parts.size() <= 2);
-    headers.setHost(parts.size() == 2
-            ? absl::StrJoin(parts, "_test:")
-            : absl::StrCat(headers.Host()->value().getStringView(), "_test"));
+    // auto parts = StringUtil::split(headers.Host()->value().getStringView(), ":");
+    // ASSERT(!parts.empty() && parts.size() <= 2);
+    // headers.setHost(parts.size() == 2
+    //         ? absl::StrJoin(parts, "_test:")
+    //         : absl::StrCat(headers.Host()->value().getStringView(), "_test"));
   }
   return FilterHeadersStatus::Continue;
 }
@@ -39,8 +39,12 @@ FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bool) {
   return FilterDataStatus::Continue;
 }
 
-FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(HeaderMap&) {
-  return FilterTrailersStatus::Continue;
+Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(HeaderMap&, bool){
+  return FilterHeadersStatus::Continue;
+}
+
+Http::FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance&, bool){
+  return FilterDataStatus::Continue;
 }
 
 void HttpSampleDecoderFilter::setDecoderFilterCallbacks(StreamDecoderFilterCallbacks& callbacks) {
