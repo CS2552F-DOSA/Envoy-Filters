@@ -43,7 +43,12 @@ static RegisterHttpFilterConfigFactory<HttpSampleDecoderFilterConfig>
     register_;
 
 static class DosaEngine {
-  int count=0;
+public:
+  int getCount() {
+    return count_ ++;
+  }
+private:
+  int count_ = 0;
 } engine_;
 
 } // namespace Configuration
