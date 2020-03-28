@@ -21,16 +21,25 @@ envoy_cc_library(
     hdrs = ["http_filter.h"],
     repository = "@envoy",
     deps = [
-        "@envoy//source/exe:envoy_common_lib",
+        "@envoy//include/envoy/buffer:buffer_interface",
+        "@envoy//include/envoy/http:filter_interface",
+        "@envoy//include/envoy/upstream:cluster_manager_interface",
+        "@envoy//source/common/common:assert_lib",
+        "@envoy//source/common/common:logger_lib",
+        "@envoy//source/common/common:enum_to_int",
+        "@envoy//source/common/http:message_lib",
+        "@envoy//source/common/http:utility_lib"
     ],
 )
 
 envoy_cc_library(
     name = "dosa_filter_config",
     srcs = ["http_filter_config.cc"],
+    hdrs = ["http_filter_config.h"],
     repository = "@envoy",
     deps = [
         ":dosa_filter_lib",
         "@envoy//include/envoy/server:filter_config_interface",
+        "@envoy//source/server/config/network:http_connection_manager_lib"
     ],
 )
