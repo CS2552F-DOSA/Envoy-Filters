@@ -11,7 +11,7 @@ envoy_cc_binary(
     repository = "@envoy",
     deps = [
         ":dosa_filter_config",
-        "@envoy//source/exe:envoy_main_entry_lib",
+        "@envoy//source/exe:envoy_main_lib",
     ],
 )
 
