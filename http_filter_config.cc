@@ -17,7 +17,7 @@ const std::string EXTAUTH_HTTP_FILTER_SCHEMA(R"EOF(
   "required" : ["cluster"],
   "additionalProperties" : false
 }
-)EOF");"
+)EOF");
 
 Http::FilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(HttpFilterType type,
                                                           const std::string& name,
