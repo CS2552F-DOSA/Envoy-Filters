@@ -19,7 +19,7 @@ const std::string EXTAUTH_HTTP_FILTER_SCHEMA(R"EOF(
 }
 )EOF");
 
-Http::FilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(HttpFilterType type,
+HttpFilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(HttpFilterType type,
                                                           const std::string& name,
                                                           const Json::Object& json_config,
                                                           const std::string& stats_prefix,
