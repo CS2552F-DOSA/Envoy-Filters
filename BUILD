@@ -39,7 +39,7 @@ envoy_cc_library(
     repository = "@envoy",
     deps = [
         ":dosa_filter_lib",
-        "@envoy//include/envoy/server:filter_config_interface",
+        "@envoy//source/server:configuration_lib",
         "@envoy//source/server/config/network:http_connection_manager_lib"
     ],
 )
