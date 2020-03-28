@@ -1,5 +1,4 @@
 #include <string>
-#include <unordered_set>
 
 #include "http_filter_config.h"
 #include "http_filter.h"

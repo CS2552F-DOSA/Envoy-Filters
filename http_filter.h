@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_set>
 
 #include "envoy/http/filter.h"
 #include "envoy/upstream/cluster_manager.h"
@@ -43,6 +44,16 @@ private:
   DosaEngine& engine_;
   StreamDecoderFilterCallbacks* decoder_callbacks_{};
 };
+
+static class DosaEngine {
+public:
+  int getCount() {
+    return count_ ++;
+  }
+private:
+  int count_ = 0;
+  unorderd_set<string> cache_;
+} engine_;
 
 } // namespace Http
 } // namespace Envoy
