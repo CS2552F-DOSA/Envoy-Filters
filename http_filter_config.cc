@@ -19,10 +19,10 @@ const std::string EXTAUTH_HTTP_FILTER_SCHEMA(R"EOF(
 }
 )EOF");
 
-HttpFilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(HttpFilterType type,
+HttpFilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(HttpFilterType,
                                                           const std::string& name,
                                                           const Json::Object& json_config,
-                                                          const std::string& stats_prefix,
+                                                          const std::string&,
                                                           Server::Instance& server){
     if (name != "dosa") {
       return nullptr;
