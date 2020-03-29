@@ -29,10 +29,10 @@ HttpFilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(HttpFi
     }
     json_config.validateSchema(EXTAUTH_HTTP_FILTER_SCHEMA);
 
-    Http::DosaConfigConstSharedPtr config(new Http::ExtAuthConfig{
+    Http::DosaConfigConstSharedPtr config(new Http::HttpSampleDecoderFilterConfig{
         server.clusterManager(), json_config.getString("cluster")});
-    return [config, engine_](Http::FilterChainFactoryCallbacks& callbacks) -> void {
-      callbacks.addStreamFilter(Http::StreamFilterSharedPtr{new Http::ExtAuth(config), engine_});
+    return [config](Http::FilterChainFactoryCallbacks& callbacks) -> void {
+      callbacks.addStreamFilter(Http::StreamFilterSharedPtr{new Http::ExtAuth(config)});
     };                                                        
 }
 

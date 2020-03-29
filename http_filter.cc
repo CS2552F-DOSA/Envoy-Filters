@@ -15,9 +15,8 @@ namespace Http {
 //     const dosa::Dosa&){}
 
 HttpSampleDecoderFilter::HttpSampleDecoderFilter(
-    DosaConfigConstSharedPtr config,
-    DosaEngine& engine)
-    : config_(config), engine_(engine){}
+    DosaConfigConstSharedPtr config)
+    : config_(config){}
 
 HttpSampleDecoderFilter::~HttpSampleDecoderFilter() {}
 

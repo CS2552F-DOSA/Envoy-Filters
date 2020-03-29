@@ -5,13 +5,12 @@
 
 #include "envoy/http/filter.h"
 #include "envoy/upstream/cluster_manager.h"
-
 #include "common/common/logger.h"
 
 namespace Envoy {
 namespace Http {
 
-static class DosaEngine {
+class DosaEngine {
 public:
   int getCount() {
     return count_ ++;
@@ -19,8 +18,7 @@ public:
 private:
   int count_ = 0;
   std::unordered_set<std::string> cache_;
-} engine_;
-
+};
 
 /**
  * Configuration for the extauth filter.
@@ -35,7 +33,7 @@ typedef std::shared_ptr<const DosaConfig> DosaConfigConstSharedPtr;
 class HttpSampleDecoderFilter : public Logger::Loggable<Logger::Id::filter>,
                                 public Http::StreamFilter {
 public:
-  HttpSampleDecoderFilter(DosaConfigConstSharedPtr, DosaEngine&);
+  HttpSampleDecoderFilter(DosaConfigConstSharedPtr);
   ~HttpSampleDecoderFilter();
 
   // Http::StreamFilterBase
@@ -51,7 +49,7 @@ public:
   void setDecoderFilterCallbacks(StreamDecoderFilterCallbacks&) override;
 private:
   const DosaConfigConstSharedPtr config_;
-  DosaEngine& engine_;
+  static DosaEngine engine_;
   StreamDecoderFilterCallbacks* decoder_callbacks_{};
 };
 
