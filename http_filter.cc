@@ -11,10 +11,12 @@
 namespace Envoy {
 namespace Http {
 
-DosaEngine HttpSampleDecoderFilter::engine_ = DosaEngine();
+DosaEngine::isKeyInCache(std::string key){
+  return true;
+  return cache_.find(key) != cache_.end();
+}
 
-// HttpSampleDecoderFilterConfig::HttpSampleDecoderFilterConfig(
-//     const dosa::Dosa&){}
+DosaEngine HttpSampleDecoderFilter::engine_ = DosaEngine();
 
 HttpSampleDecoderFilter::HttpSampleDecoderFilter(
     DosaConfigConstSharedPtr config)
@@ -26,17 +28,37 @@ void HttpSampleDecoderFilter::onDestroy() {}
 
 FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(HeaderMap&, bool) {
   log().info("The count is {}", engine_.getCount());
-  if(false) {
-    // auto parts = StringUtil::split(headers.Host()->value().getStringView(), ":");
-    // ASSERT(!parts.empty() && parts.size() <= 2);
-    // headers.setHost(parts.size() == 2
-    //         ? absl::StrJoin(parts, "_test:")
-    //         : absl::StrCat(headers.Host()->value().getStringView(), "_test"));
+  // if(false) {
+  //   // auto parts = StringUtil::split(headers.Host()->value().getStringView(), ":");
+  //   // ASSERT(!parts.empty() && parts.size() <= 2);
+  //   // headers.setHost(parts.size() == 2
+  //   //         ? absl::StrJoin(parts, "_test:")
+  //   //         : absl::StrCat(headers.Host()->value().getStringView(), "_test"));
+  // }
+  // return FilterHeadersStatus::Continue;
+  if(decodeCacheCheck_){
+    // The decodeData checked the cache
+    if(decodeDoNotChange_){
+      return FilterHeadersStatus::Continue;
+    } else {
+      // TODO: change the header to test database
+      return FilterHeadersStatus::Continue;
+    }
+  } else {
+    // We do not check the cache.
+    return FilterHeadersStatus::StopIteration;
   }
-  return FilterHeadersStatus::Continue;
 }
 
 Http::FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bool) {
+  // TODO: Decode the data
+
+  // Note: The order is important
+  decodeDoNotChange_ = !engine_.isKeyInCache("TODO:");
+  decodeCacheCheck_ = true;
+
+  decoder_callbacks_.continueDecoding();
+  
   return FilterDataStatus::Continue;
 }
 

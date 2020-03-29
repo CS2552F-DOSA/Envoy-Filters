@@ -18,6 +18,8 @@ public:
   int getCount() {
     return count_ ++;
   }
+
+  bool isKeyInCache(std::string);
 private:
   int count_ = 0;
   std::unordered_set<std::string> cache_;
@@ -56,6 +58,8 @@ public:
 private:
   const DosaConfigConstSharedPtr config_;
   static DosaEngine engine_;
+  bool decodeCacheCheck_ = false;
+  bool decodeDoNotChange_ = true;
 
   StreamDecoderFilterCallbacks* decoder_callbacks_{};
   StreamEncoderFilterCallbacks* encoder_callbacks_{};
