@@ -34,8 +34,12 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(HeaderMap&, bool) {
   return FilterHeadersStatus::Continue;
 }
 
-FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bool) {
+Http::FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bool) {
   return FilterDataStatus::Continue;
+}
+
+Http::FilterTrailersStatus decodeTrailers(HeaderMap&){
+  return FilterTrailersStatus::Continue;
 }
 
 Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(HeaderMap&, bool){
@@ -46,8 +50,16 @@ Http::FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance&, bo
   return FilterDataStatus::Continue;
 }
 
+Http::FilterTrailersStatus encodeTrailers(HeaderMap&){
+  return FilterTrailersStatus::Continue;
+}
+
 void HttpSampleDecoderFilter::setDecoderFilterCallbacks(StreamDecoderFilterCallbacks& callbacks) {
   decoder_callbacks_ = &callbacks;
+}
+
+void HttpSampleDecoderFilter::setEncoderFilterCallbacks(StreamEncoderFilterCallbacks& callbacks) {
+  encoder_callbacks_ = &callbacks;
 }
 
 } // namespace Http
