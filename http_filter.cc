@@ -52,13 +52,14 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(HeaderMap&, bool) {
 
 Http::FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bool) {
   // TODO: Decode the data
+  std::string key = "TODO:";
 
   // Note: The order is important
-  decodeDoNotChange_ = !engine_.isKeyInCache("TODO:");
+  decodeDoNotChange_ = !engine_.isKeyInCache(key);
   decodeCacheCheck_ = true;
 
   decoder_callbacks_.continueDecoding();
-  
+
   return FilterDataStatus::Continue;
 }
 
