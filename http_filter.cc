@@ -55,7 +55,8 @@ Http::FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bo
   std::string key = "TODO:";
 
   // Note: The order is important
-  decodeDoNotChange_ = !engine_.isKeyInCache(key);
+  // decodeDoNotChange_ = !engine_.isKeyInCache(key);
+  decodeDoNotChange_ = true;
   decodeCacheCheck_ = true;
 
   decoder_callbacks_.continueDecoding();
@@ -68,6 +69,7 @@ Http::FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(HeaderMap&){
 }
 
 Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(HeaderMap&, bool){
+  log().info("The count is now {}", engine_.getCount());
   return FilterHeadersStatus::Continue;
 }
 
@@ -85,6 +87,14 @@ void HttpSampleDecoderFilter::setDecoderFilterCallbacks(StreamDecoderFilterCallb
 
 void HttpSampleDecoderFilter::setEncoderFilterCallbacks(StreamEncoderFilterCallbacks& callbacks) {
   encoder_callbacks_ = &callbacks;
+}
+
+void HttpSampleDecoderFilter::onSuccess(Http::MessagePtr&& response){
+  return;
+}
+
+void HttpSampleDecoderFilter::onFailure(Http::MessagePtr&& response){
+  return;
 }
 
 } // namespace Http
