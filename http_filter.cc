@@ -11,6 +11,8 @@
 namespace Envoy {
 namespace Http {
 
+DosaEngine HttpSampleDecoderFilter::engine_ = DosaEngine();
+
 // HttpSampleDecoderFilterConfig::HttpSampleDecoderFilterConfig(
 //     const dosa::Dosa&){}
 

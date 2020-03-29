@@ -12,6 +12,9 @@ namespace Http {
 
 class DosaEngine {
 public:
+  DosaEngine();
+  ~DosaEngine();
+  
   int getCount() {
     return count_ ++;
   }
