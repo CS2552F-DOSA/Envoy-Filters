@@ -30,7 +30,7 @@ struct DosaConfig {
 
 typedef std::shared_ptr<const DosaConfig> DosaConfigConstSharedPtr;
 
-class HttpSampleDecoderFilter : public Logger::Loggable<Logger::Id::filter>,
+class HttpSampleDecoderFilter : Logger::Loggable<Logger::Id::filter>,
                                 public Http::StreamFilter {
 public:
   HttpSampleDecoderFilter(DosaConfigConstSharedPtr);
@@ -42,15 +42,20 @@ public:
   // Http::StreamDecoderFilter
   Http::FilterHeadersStatus decodeHeaders(HeaderMap&, bool) override;
   Http::FilterDataStatus decodeData(Buffer::Instance&, bool) override;
+  Http::FilterTrailersStatus decodeTrailers(HeaderMap&) override;
 
   Http::FilterHeadersStatus encodeHeaders(HeaderMap&, bool) override;
   Http::FilterDataStatus encodeData(Buffer::Instance&, bool) override;
+  Http::FilterTrailersStatus encodeTrailers(HeaderMap& ) override;
 
   void setDecoderFilterCallbacks(StreamDecoderFilterCallbacks&) override;
+  void setEncoderFilterCallbacks(StreamEncoderFilterCallbacks&) override;
 private:
   const DosaConfigConstSharedPtr config_;
   static DosaEngine engine_;
+
   StreamDecoderFilterCallbacks* decoder_callbacks_{};
+  StreamEncoderFilterCallbacks* encoder_callbacks_{};
 };
 
 } // namespace Http
