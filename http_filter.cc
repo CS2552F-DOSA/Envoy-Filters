@@ -38,7 +38,7 @@ Http::FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bo
   return FilterDataStatus::Continue;
 }
 
-Http::FilterTrailersStatus decodeTrailers(HeaderMap&){
+Http::FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(HeaderMap&){
   return FilterTrailersStatus::Continue;
 }
 
@@ -50,7 +50,7 @@ Http::FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance&, bo
   return FilterDataStatus::Continue;
 }
 
-Http::FilterTrailersStatus encodeTrailers(HeaderMap&){
+Http::FilterTrailersStatus HttpSampleDecoderFilter::encodeTrailers(HeaderMap&){
   return FilterTrailersStatus::Continue;
 }
 
