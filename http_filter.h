@@ -58,8 +58,8 @@ public:
   void setEncoderFilterCallbacks(StreamEncoderFilterCallbacks&) override;
 
   // Http::AsyncClient::Callbacks
-  void onSuccess(Http::MessagePtr&& response) override;
-  void onFailure(Http::AsyncClient::FailureReason reason) override;
+  void onSuccess(Http::MessagePtr&&) override;
+  void onFailure(Http::AsyncClient::FailureReason) override;
 
 private:
   const DosaConfigConstSharedPtr config_;

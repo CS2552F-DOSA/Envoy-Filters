@@ -59,7 +59,7 @@ Http::FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bo
   decodeDoNotChange_ = true;
   decodeCacheCheck_ = true;
 
-  decoder_callbacks_.continueDecoding();
+  decoder_callbacks_->continueDecoding();
 
   return FilterDataStatus::Continue;
 }
@@ -89,11 +89,11 @@ void HttpSampleDecoderFilter::setEncoderFilterCallbacks(StreamEncoderFilterCallb
   encoder_callbacks_ = &callbacks;
 }
 
-void HttpSampleDecoderFilter::onSuccess(Http::MessagePtr&& response){
+void HttpSampleDecoderFilter::onSuccess(Http::MessagePtr&&){
   return;
 }
 
-void HttpSampleDecoderFilter::onFailure(Http::MessagePtr&& response){
+void HttpSampleDecoderFilter::onFailure(Http::AsyncClient::FailureReason){
   return;
 }
 
