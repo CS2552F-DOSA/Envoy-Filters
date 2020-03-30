@@ -11,7 +11,7 @@
 namespace Envoy {
 namespace Http {
 
-DosaEngine::isKeyInCache(std::string key){
+bool DosaEngine::isKeyInCache(std::string key){
   return true;
   return cache_.find(key) != cache_.end();
 }
