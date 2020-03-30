@@ -36,7 +36,7 @@ struct DosaConfig {
 typedef std::shared_ptr<const DosaConfig> DosaConfigConstSharedPtr;
 
 class HttpSampleDecoderFilter : Logger::Loggable<Logger::Id::filter>,
-                                public Http::StreamFilter
+                                public Http::StreamFilter,
                                 public Http::AsyncClient::Callbacks{
 public:
   HttpSampleDecoderFilter(DosaConfigConstSharedPtr);
