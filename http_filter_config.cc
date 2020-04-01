@@ -7,39 +7,31 @@ namespace Envoy {
 namespace Server {
 namespace Configuration {
 
-const std::string EXTAUTH_HTTP_FILTER_SCHEMA(R"EOF(
-{
-  "$schema": "http://json-schema.org/schema#",
-  "type" : "object",
-  "properties" : {
-    "cluster" : {"type" : "string"}
-  },
-  "required" : ["cluster"],
-  "additionalProperties" : false
-}
-)EOF");
-
-HttpFilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(HttpFilterType,
+Http::FilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(HttpFilterType,
                                                           const std::string& name,
                                                           const Json::Object& json_config,
                                                           const std::string&,
                                                           Server::Instance& server){
-    if (name != "dosa") {
-      return nullptr;
-    }
-    json_config.validateSchema(EXTAUTH_HTTP_FILTER_SCHEMA);
+    return createFilter(Envoy::MessageUtil::downcastAndValidate<const sample::Decoder&>(
+                            proto_config, context.messageValidationVisitor()),
+                        context);                                              
+}
 
-    Http::DosaConfigConstSharedPtr config(new Http::DosaConfig{
-        server.clusterManager(), json_config.getString("cluster")});
-    return [config](Http::FilterChainFactoryCallbacks& callbacks) -> void {
-      callbacks.addStreamFilter(Http::StreamFilterSharedPtr{new Http::HttpSampleDecoderFilter(config)});
-    };                                                        
+Http::FilterFactoryCb createFilter(const sample::Decoder& proto_config, FactoryContext&) {
+  Http::DosaConfigConstSharedPtr config =
+      std::make_shared<Http::DosaConfigConstSharedPtr>(
+          Http::DosaConfigConstSharedPtr(proto_config));
+
+  return [config](Http::FilterChainFactoryCallbacks& callbacks) -> void {
+    auto filter = new Http::HttpSampleDecoderFilter(config);
+    callbacks.addStreamFilter(Http::StreamFilterSharedPtr{filter});
+  };
 }
 
 /**
  * Static registration for this sample filter. @see RegisterFactory.
  */
-static RegisterHttpFilterConfigFactory<HttpSampleDecoderFilterConfig>
+static RegisterHttpFilterConfigFactory<HttpSampleDecoderFilterConfig, NamedHttpFilterConfigFactory>
     register_;
 
 } // namespace Configuration
