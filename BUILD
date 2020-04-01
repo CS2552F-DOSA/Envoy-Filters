@@ -6,14 +6,18 @@ load(
     "envoy_cc_library",
 )
 
+load("@envoy_api//bazel:api_build_system.bzl", "api_proto_package")
+
 envoy_cc_binary(
     name = "envoy",
     repository = "@envoy",
     deps = [
         ":dosa_filter_config",
-        "@envoy//source/exe:envoy_main_lib",
+        "@envoy//source/exe:envoy_main_entry_lib",
     ],
 )
+
+api_proto_package()
 
 envoy_cc_library(
     name = "dosa_filter_lib",
@@ -21,15 +25,8 @@ envoy_cc_library(
     hdrs = ["http_filter.h"],
     repository = "@envoy",
     deps = [
-        "@envoy//include/envoy/buffer:buffer_interface",
-        "@envoy//include/envoy/http:filter_interface",
-        "@envoy//include/envoy/upstream:cluster_manager_interface",
-        "@envoy//source/common/common:assert_lib",
-        "@envoy//source/common/common:logger_lib",
-        "@envoy//source/common/common:enum_to_int",
-        "@envoy//source/common/http:message_lib",
-        "@envoy//source/common/http:utility_lib",
-        "@envoy//source/common/common:utility_lib"
+        ":pkg_cc_proto",
+        "@envoy//source/exe:envoy_common_lib",
     ],
 )
 
@@ -40,7 +37,6 @@ envoy_cc_library(
     repository = "@envoy",
     deps = [
         ":dosa_filter_lib",
-        "@envoy//source/server:configuration_lib",
-        "@envoy//source/server/config/network:http_connection_manager_lib"
+        "@envoy//include/envoy/server:filter_config_interface",
     ],
 )
