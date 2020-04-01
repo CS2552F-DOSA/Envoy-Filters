@@ -67,6 +67,9 @@ private:
   bool decodeCacheCheck_ = false;
   bool decodeDoNotChange_ = true;
 
+  HeaderMap* copiedHeaders;
+  HeaderMap* copiedTrailers;
+
   StreamDecoderFilterCallbacks* decoder_callbacks_{};
   StreamEncoderFilterCallbacks* encoder_callbacks_{};
 
