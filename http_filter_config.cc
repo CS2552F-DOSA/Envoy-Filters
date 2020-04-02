@@ -7,20 +7,18 @@ namespace Envoy {
 namespace Server {
 namespace Configuration {
 
-Http::FilterFactoryCb HttpSampleDecoderFilterConfig::tryCreateFilterFactory(HttpFilterType,
-                                                          const std::string& name,
-                                                          const Json::Object& json_config,
-                                                          const std::string&,
-                                                          Server::Instance& server){
-    return createFilter(Envoy::MessageUtil::downcastAndValidate<const sample::Decoder&>(
+Http::FilterFactoryCb HttpSampleDecoderFilterConfig::createFilterFactoryFromProto(const Protobuf::Message& proto_config,
+                                                      const std::string&,
+                                                      FactoryContext& context){
+    return createFilter(Envoy::MessageUtil::downcastAndValidate<const dosa::Dosa&>(
                             proto_config, context.messageValidationVisitor()),
                         context);                                              
 }
 
-Http::FilterFactoryCb createFilter(const sample::Decoder& proto_config, FactoryContext&) {
+Http::FilterFactoryCb HttpSampleDecoderFilterConfig::createFilter(const dosa::Dosa& proto_config, FactoryContext&) {
   Http::DosaConfigConstSharedPtr config =
-      std::make_shared<Http::DosaConfigConstSharedPtr>(
-          Http::DosaConfigConstSharedPtr(proto_config));
+      std::make_shared<Http::DosaConfig>(
+          Http::DosaConfig(proto_config));
 
   return [config](Http::FilterChainFactoryCallbacks& callbacks) -> void {
     auto filter = new Http::HttpSampleDecoderFilter(config);
@@ -31,7 +29,7 @@ Http::FilterFactoryCb createFilter(const sample::Decoder& proto_config, FactoryC
 /**
  * Static registration for this sample filter. @see RegisterFactory.
  */
-static RegisterHttpFilterConfigFactory<HttpSampleDecoderFilterConfig, NamedHttpFilterConfigFactory>
+static Registry::RegisterFactory<HttpSampleDecoderFilterConfig, NamedHttpFilterConfigFactory>
     register_;
 
 } // namespace Configuration

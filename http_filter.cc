@@ -7,6 +7,9 @@
 namespace Envoy {
 namespace Http {
 
+DosaConfig::DosaConfig(const dosa::Dosa& proto_config):
+  cluster_(proto_config.cluster()) {}
+
 bool DosaEngine::isKeyInCache(std::string key){
   return true;
   return cache_.find(key) != cache_.end();
@@ -23,8 +26,8 @@ HttpSampleDecoderFilter::~HttpSampleDecoderFilter() {}
 void HttpSampleDecoderFilter::onDestroy() {}
 
 FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap&, bool) {
-  log().info("The count is {}", engine_.getCount());
-  return return FilterHeadersStatus::Continue;
+  // log().info("The count is {}", engine_.getCount());
+  return FilterHeadersStatus::Continue;
 
   // if(copiedHeaders){
   //   copiedHeaders = Http::HeaderMapPtr{new Http::HeaderMapImpl(*headers)};
@@ -84,7 +87,7 @@ FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&)
 }
 
 Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap&, bool){
-  log().info("The count is now {}", engine_.getCount());
+  // log().info("The count is now {}", engine_.getCount());
   return FilterHeadersStatus::Continue;
 }
 
@@ -96,6 +99,14 @@ Http::FilterTrailersStatus HttpSampleDecoderFilter::encodeTrailers(ResponseTrail
   return FilterTrailersStatus::Continue;
 }
 
+FilterHeadersStatus HttpSampleDecoderFilter::encode100ContinueHeaders(ResponseHeaderMap&){
+  return FilterHeadersStatus::Continue;
+}
+
+FilterMetadataStatus HttpSampleDecoderFilter::encodeMetadata(MetadataMap&){
+  return FilterMetadataStatus::Continue;
+}
+
 void HttpSampleDecoderFilter::setDecoderFilterCallbacks(StreamDecoderFilterCallbacks& callbacks) {
   decoder_callbacks_ = &callbacks;
 }
@@ -104,11 +115,11 @@ void HttpSampleDecoderFilter::setEncoderFilterCallbacks(StreamEncoderFilterCallb
   encoder_callbacks_ = &callbacks;
 }
 
-void HttpSampleDecoderFilter::onSuccess(Http::MessagePtr&&){
+void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMessagePtr&&){
   return;
 }
 
-void HttpSampleDecoderFilter::onFailure(Http::AsyncClient::FailureReason){
+void HttpSampleDecoderFilter::onFailure(const AsyncClient::Request&, AsyncClient::FailureReason){
   return;
 }
 
