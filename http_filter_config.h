@@ -2,21 +2,30 @@
 
 #include <string>
 
-#include "http_filter.h"
+#include "envoy/registry/registry.h"
 
-#include "envoy/server/instance.h"
-#include "server/config/network/http_connection_manager.h"
+#include "http_filter.pb.h"
+#include "http_filter.pb.validate.h"
+#include "http_filter.h"
 
 namespace Envoy {
 namespace Server {
 namespace Configuration {
 
-class HttpSampleDecoderFilterConfig: public HttpFilterConfigFactory {
+class HttpSampleDecoderFilterConfig: public NamedHttpFilterConfigFactory {
 public:
-  HttpFilterFactoryCb tryCreateFilterFactory(HttpFilterType type, const std::string& name,
-                                            const Json::Object& json_config,
-                                            const std::string& stats_prefix,
-                                            Server::Instance& server) override;
+  Http::FilterFactoryCb createFilterFactoryFromProto(const Protobuf::Message& config,
+                                                      const std::string& stat_prefix,
+                                                      FactoryContext& context) override;
+
+  ProtobufTypes::MessagePtr createEmptyConfigProto() override {
+    return ProtobufTypes::MessagePtr{new dosa::Dosa()};
+  }
+
+  std::string name() const override { return "dosa"; }
+
+private:
+  Http::FilterFactoryCb createFilter(const dosa::Dosa& proto_config, FactoryContext&);
 };
 
 } // Configuration

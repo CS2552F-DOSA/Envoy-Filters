@@ -3,9 +3,9 @@
 #include <string>
 #include <unordered_set>
 
-#include "envoy/http/filter.h"
-#include "envoy/upstream/cluster_manager.h"
-#include "common/common/logger.h"
+#include "envoy/server/filter_config.h"
+
+#include "http_filter.pb.h"
 
 namespace Envoy {
 namespace Http {
@@ -29,51 +29,56 @@ private:
  * Configuration for the extauth filter.
  */
 struct DosaConfig {
-  Upstream::ClusterManager& cm_;
+public:
+  DosaConfig(const dosa::Dosa& proto_config);
+  // sUpstream::ClusterManager& cm_;
   std::string cluster_;
 };
 
 typedef std::shared_ptr<const DosaConfig> DosaConfigConstSharedPtr;
 
 class HttpSampleDecoderFilter : Logger::Loggable<Logger::Id::filter>,
-                                public Http::StreamFilter,
-                                public Http::AsyncClient::Callbacks{
+                                public StreamFilter,
+                                public AsyncClient::Callbacks{
 public:
   HttpSampleDecoderFilter(DosaConfigConstSharedPtr);
   ~HttpSampleDecoderFilter();
 
-  // Http::StreamFilterBase
+  // StreamFilterBase
   void onDestroy() override;
 
-  // Http::StreamDecoderFilter
-  Http::FilterHeadersStatus decodeHeaders(HeaderMap&, bool) override;
-  Http::FilterDataStatus decodeData(Buffer::Instance&, bool) override;
-  Http::FilterTrailersStatus decodeTrailers(HeaderMap&) override;
+  // StreamDecoderFilter
+  FilterHeadersStatus decodeHeaders(RequestHeaderMap&, bool) override;
+  FilterDataStatus decodeData(Buffer::Instance&, bool) override;
+  FilterTrailersStatus decodeTrailers(RequestTrailerMap&) override;
 
-  Http::FilterHeadersStatus encodeHeaders(HeaderMap&, bool) override;
-  Http::FilterDataStatus encodeData(Buffer::Instance&, bool) override;
-  Http::FilterTrailersStatus encodeTrailers(HeaderMap& ) override;
+  FilterHeadersStatus encodeHeaders(ResponseHeaderMap&, bool) override;
+  FilterDataStatus encodeData(Buffer::Instance&, bool) override;
+  FilterTrailersStatus encodeTrailers(ResponseTrailerMap& ) override;
+
+  FilterHeadersStatus encode100ContinueHeaders(ResponseHeaderMap&) override;
+  FilterMetadataStatus encodeMetadata(MetadataMap&) override;
 
   void setDecoderFilterCallbacks(StreamDecoderFilterCallbacks&) override;
   void setEncoderFilterCallbacks(StreamEncoderFilterCallbacks&) override;
 
   // Http::AsyncClient::Callbacks
-  void onSuccess(Http::MessagePtr&&) override;
-  void onFailure(Http::AsyncClient::FailureReason) override;
+  void onSuccess(const AsyncClient::Request&, ResponseMessagePtr&&) override;
+  void onFailure(const AsyncClient::Request&, AsyncClient::FailureReason) override;
 
 private:
   const DosaConfigConstSharedPtr config_;
   static DosaEngine engine_;
-  bool decodeCacheCheck_ = false;
-  bool decodeDoNotChange_ = true;
+  // bool decodeCacheCheck_ = false;
+  // bool decodeDoNotChange_ = true;
 
-  HeaderMap* copiedHeaders;
-  HeaderMap* copiedTrailers;
+  // HeaderMap* copiedHeaders;
+  // HeaderMap* copiedTrailers;
 
   StreamDecoderFilterCallbacks* decoder_callbacks_{};
   StreamEncoderFilterCallbacks* encoder_callbacks_{};
 
-  Http::AsyncClient::Request* test_request_{};
+  // Http::AsyncClient::Request* test_request_{};
 };
 
 } // namespace Http
