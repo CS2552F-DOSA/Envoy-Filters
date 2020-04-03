@@ -25,8 +25,8 @@ HttpSampleDecoderFilter::~HttpSampleDecoderFilter() {}
 
 void HttpSampleDecoderFilter::onDestroy() {}
 
-FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap&, bool) {
-  // log().info("The count is {}", engine_.getCount());
+FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& headers, bool) {
+  ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, headers);
   return FilterHeadersStatus::Continue;
 
   // if(copiedHeaders){
@@ -86,8 +86,8 @@ FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&)
   return FilterTrailersStatus::Continue;
 }
 
-Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap&, bool){
-  // log().info("The count is now {}", engine_.getCount());
+Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap& headers, bool){
+  ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, headers);
   return FilterHeadersStatus::Continue;
 }
 

@@ -23,8 +23,8 @@ fi
 # Perform the build
 git submodule update --init
 mkdir -p dist
-docker run -it --rm -v $DOSA_BUILD_DIR:/source \
-    lyft/envoy-build:$ENVOY_BUILD_SHA /bin/bash /source/dosa-build-docker.sh
+docker run -it --rm -v `pwd`:/source -w /source \
+    envoyproxy/envoy-build:latest /bin/bash /source/dosa-build-docker.sh
 docker build -t CS2552F-DOSA/Envoy-Filters:latest .
 docker tag CS2552F-DOSA/Envoy-Filters:latest CS2552F-DOSA/Envoy-Filters:$COMMIT
 
