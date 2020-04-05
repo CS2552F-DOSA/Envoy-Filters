@@ -1,26 +1,33 @@
-# Envoy filter example
+# Dosa Envoy filter
 
-This project demonstrates the linking of additional HTTP filters with the Envoy binary.
-A new filter `sample` which adds a HTTP header is introduced.
-Integration tests demonstrating the filter's end-to-end behavior are
-also provided.
+This project is related to the CS2952F. 
 
 ## Building
 
-To build the Envoy static binary:
+To build the Envoy static binary in local:
 
 1. `git submodule update --init`
 2. `bazel build //:envoy`
 
-<!-- ## Testing
+To build the docker image:
+`$ ./dosa-build.sh`
 
-To run the `sample` integration test:
+## How to test
 
-`bazel test //http-filter-example:http_filter_integration_test` -->
+We do not have uint test and integration test. To test or experimentw with this project in docker container:
 
-## How it works
+```
+$ git submodule update --init
+$ docker run -it --rm -v `pwd`:/source -w /source envoyproxy/envoy-build:latest /bin/bash
+$ docker build //:envoy
+$ bazel-bin/envoy -c dosa_server.yaml -l info 2>&1
+```
 
-See the [network filter example](../README.md#how-it-works).
+On another terminal (better within the container), you can try to send some messages to the Envoy now:
+
+```
+$ curl -v 127.0.0.1:9999/service
+```
 
 ## How to write and use an HTTP filter
 
