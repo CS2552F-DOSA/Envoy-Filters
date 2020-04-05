@@ -10,6 +10,7 @@ To build the Envoy static binary in local:
 2. `bazel build //:envoy`
 
 To build the docker image:
+
 `$ ./dosa-build.sh`
 
 ## How to test
