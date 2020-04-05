@@ -15,10 +15,10 @@ Http::FilterFactoryCb HttpSampleDecoderFilterConfig::createFilterFactoryFromProt
                         context);                                              
 }
 
-Http::FilterFactoryCb HttpSampleDecoderFilterConfig::createFilter(const dosa::Dosa& proto_config, FactoryContext&) {
+Http::FilterFactoryCb HttpSampleDecoderFilterConfig::createFilter(const dosa::Dosa& proto_config, FactoryContext& context) {
   Http::DosaConfigConstSharedPtr config =
       std::make_shared<Http::DosaConfig>(
-          Http::DosaConfig(proto_config));
+          Http::DosaConfig(proto_config, context.clusterManager()));
 
   return [config](Http::FilterChainFactoryCallbacks& callbacks) -> void {
     auto filter = new Http::HttpSampleDecoderFilter(config);
