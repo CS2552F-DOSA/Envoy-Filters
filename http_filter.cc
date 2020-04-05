@@ -7,8 +7,8 @@
 namespace Envoy {
 namespace Http {
 
-DosaConfig::DosaConfig(const dosa::Dosa& proto_config):
-  cluster_(proto_config.cluster()) {}
+DosaConfig::DosaConfig(const dosa::Dosa& proto_config, Upstream::ClusterManager& cm):
+  cm_(cm), cluster_(proto_config.cluster()) {}
 
 bool DosaEngine::isKeyInCache(std::string key){
   return true;
