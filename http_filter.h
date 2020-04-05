@@ -70,16 +70,16 @@ private:
   const DosaConfigConstSharedPtr config_;
   static DosaEngine engine_;
   int count_ = 0;
-  // bool decodeCacheCheck_ = false;
-  // bool decodeDoNotChange_ = true;
+  bool decodeCacheCheck_ = false;
+  bool decodeDoNotChange_ = true;
 
-  // HeaderMap* copiedHeaders;
-  // HeaderMap* copiedTrailers;
+  Http::RequestHeaderMap* copiedHeaders{};
+  // RequestTrailerMap* copiedTrailers;
 
   StreamDecoderFilterCallbacks* decoder_callbacks_{};
   StreamEncoderFilterCallbacks* encoder_callbacks_{};
 
-  // Http::AsyncClient::Request* test_request_{};
+  Http::AsyncClient::Request* test_request_{};
 };
 
 } // namespace Http

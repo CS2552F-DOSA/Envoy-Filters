@@ -3,6 +3,11 @@
 #include "http_filter.h"
 
 #include "envoy/server/filter_config.h"
+#include "common/http/codes.h"
+#include "common/http/header_map_impl.h"
+#include "common/http/headers.h"
+#include "common/http/message_impl.h"
+#include "common/http/utility.h"
 
 namespace Envoy {
 namespace Http {
@@ -30,57 +35,72 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
   ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, count_++);
   return FilterHeadersStatus::Continue;
 
-  // if(copiedHeaders){
-  //   copiedHeaders = Http::HeaderMapPtr{new Http::HeaderMapImpl(*headers)};
-  //   decoder_callbacks_->continueDecoding();
-  // }
+  if(!copiedHeaders){
+    copiedHeaders = &headers;
+    decoder_callbacks_->continueDecoding();
+  }
 
-  // if(decodeCacheCheck_){
-  //   // The decodeData checked the cache
-  //   if(decodeDoNotChange_){
-  //     return FilterHeadersStatus::Continue;
-  //   } else {
-  //     // // Change the header to test database
-  //     // std::string host = headers->Host()->value().c_str();
-  //     // ASSERT(!host.empty());
-  //     // host += "_test";
-  //     // headers->Host()->value(host);
-  //     return FilterHeadersStatus::Continue;
-  //   }
-  // } else {
-  //   // We do not check the cache.
-  //   return FilterHeadersStatus::StopIteration;
-  // }
+  if(decodeCacheCheck_){
+    // The decodeData checked the cache
+    if(decodeDoNotChange_){
+      // We fork the data but do not change it
+      return FilterHeadersStatus::Continue;
+    } else {
+      // // Change the header to test database
+      // std::string host = headers->Host()->value().c_str();
+      // ASSERT(!host.empty());
+      // host += "_test";
+      // headers->Host()->value(host);
+      return FilterHeadersStatus::Continue;
+    }
+  } else {
+    // We do not check the cache.
+    return FilterHeadersStatus::StopIteration;
+  }
 }
 
 FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bool) {
-  // if(!decodeCacheCheck_){
-  //   // TODO: Decode the data
-  //   std::string key = "TODO:";s
+  if(!decodeCacheCheck_){
+    // TODO: Decode the data
+    std::string key = "TODO:";
 
-  //   // Note: The order is important
-  //   // decodeDoNotChange_ = !engine_.isKeyInCache(key);
-  //   decodeDoNotChange_ = true;
-  //   decodeCacheCheck_ = true;
+    // Note: The order is important
+    // decodeDoNotChange_ = !engine_.isKeyInCache(key);
+    decodeDoNotChange_ = true;
+    decodeCacheCheck_ = true;
 
-  //   decoder_callbacks_->continueDecoding();
-  // }
+    decoder_callbacks_->continueDecoding();
+  }
 
-  // if(decodeDoNotChange_){
-  //   if(copiedHeaders && copiedTrailers){
-  //     // TODO: shadow the request to the test server
-  //     Http::MessagePtr request(new Http::RequestMessageImpl(copiedHeaders));
-  //     request->body().reset(new Buffer::OwnedImpl(*callbacks_->decodingBuffer()));
-  //   } else {
-  //     return FilterDataStatus::StopIterationAndBuffer;
-  //   }
-  // }
+  if(decodeDoNotChange_){
+    // We do not change the header of the request but we fork it
+    if(copiedHeaders){
+      // Shadow the request to the test server
+      Http::RequestMessagePtr request(new Http::RequestMessageImpl(
+        Http::createHeaderMap<Http::RequestHeaderMapImpl>(*copiedHeaders)));
+      if(decoder_callbacks_->decodingBuffer()){
+        request->body() = std::make_unique<Buffer::OwnedImpl>(*decoder_callbacks_->decodingBuffer());
+      }
+
+      auto parts = StringUtil::splitToken(request->headers().Host()->value().getStringView(), ":");
+      ASSERT(!parts.empty() && parts.size() <= 2);
+      request->headers().setHost(
+          parts.size() == 2
+              ? absl::StrJoin(parts, "_test:")
+              : absl::StrCat(request->headers().Host()->value().getStringView(), "_test"));
+
+      test_request_ = config_->cm_.httpAsyncClientForCluster(config_->cluster_)
+          .send(std::move(request), *this, Http::AsyncClient::RequestOptions());
+    } else {
+      return FilterDataStatus::StopIterationAndBuffer;
+    }
+  }
 
   return FilterDataStatus::Continue;
 }
 
 FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&){
-  // if(copiedTrailers){
+  // if(!copiedTrailers){
   //   copiedTrailers = Http::HeaderMapPtr{new Http::HeaderMapImpl(*trailers)};
   //   decoder_callbacks_->continueDecoding();
   // }
