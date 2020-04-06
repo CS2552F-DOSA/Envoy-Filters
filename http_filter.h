@@ -31,9 +31,8 @@ private:
  */
 struct DosaConfig {
 public:
-  DosaConfig(const dosa::Dosa& proto_config);
-  // DosaConfig(const dosa::Dosa& proto_config, Upstream::ClusterManager& cm);
-  // Upstream::ClusterManager& cm_;
+  DosaConfig(const dosa::Dosa& proto_config, Upstream::ClusterManager& cm);
+  Upstream::ClusterManager& cm_;
   std::string cluster_;
 };
 

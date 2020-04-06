@@ -15,13 +15,13 @@ Network::FilterFactoryCb HttpSampleDecoderFilterConfig::createFilterFactoryFromP
                         context);                                              
 }
 
-Network::FilterFactoryCb HttpSampleDecoderFilterConfig::createFilter(const dosa::Dosa& proto_config, FactoryContext&) {
-  // Filter::DosaConfigConstSharedPtr config =
-  //     std::make_shared<Filter::DosaConfig>(
-  //         Filter::DosaConfig(proto_config, context.clusterManager()));
+Network::FilterFactoryCb HttpSampleDecoderFilterConfig::createFilter(const dosa::Dosa& proto_config, FactoryContext& context) {
   Filter::DosaConfigConstSharedPtr config =
       std::make_shared<Filter::DosaConfig>(
-          Filter::DosaConfig(proto_config));
+          Filter::DosaConfig(proto_config, context.clusterManager()));
+  // Filter::DosaConfigConstSharedPtr config =
+  //     std::make_shared<Filter::DosaConfig>(
+  //         Filter::DosaConfig(proto_config));
 
   return [config](Network::FilterManager& filter_manager) -> void {
     auto filter = new Filter::HttpSampleDecoderFilter(config);
