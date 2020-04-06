@@ -70,8 +70,11 @@ private:
   const DosaConfigConstSharedPtr config_;
   static DosaEngine engine_;
   int count_ = 0;
+
   bool decodeCacheCheck_ = false;
+  // decodeDoNotChange_ is TRUE means we sent fork request to test.
   bool decodeDoNotChange_ = true;
+  bool hearhBackFromTest = false;
 
   Http::RequestHeaderMap* copiedHeaders{};
   // RequestTrailerMap* copiedTrailers;

@@ -118,6 +118,11 @@ Http::FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance&, bo
 }
 
 Http::FilterTrailersStatus HttpSampleDecoderFilter::encodeTrailers(ResponseTrailerMap&){
+  if(!decodeDoNotChange_)
+    return FilterTrailersStatus::Continue;
+  if(!hearhBackFromTest)
+    return FilterTrailersStatus::StopIteration;
+  // We have recevied from test and we might need to modify the package
   return FilterTrailersStatus::Continue;
 }
 
