@@ -7,30 +7,36 @@ namespace Envoy {
 namespace Server {
 namespace Configuration {
 
-Http::FilterFactoryCb HttpSampleDecoderFilterConfig::createFilterFactoryFromProto(const Protobuf::Message& proto_config,
-                                                      const std::string&,
+Network::FilterFactoryCb HttpSampleDecoderFilterConfig::createFilterFactoryFromProto(
+                                                      const Protobuf::Message& proto_config,
                                                       FactoryContext& context){
     return createFilter(Envoy::MessageUtil::downcastAndValidate<const dosa::Dosa&>(
                             proto_config, context.messageValidationVisitor()),
                         context);                                              
 }
 
-Http::FilterFactoryCb HttpSampleDecoderFilterConfig::createFilter(const dosa::Dosa& proto_config, FactoryContext& context) {
-  Http::DosaConfigConstSharedPtr config =
-      std::make_shared<Http::DosaConfig>(
-          Http::DosaConfig(proto_config, context.clusterManager()));
+Network::FilterFactoryCb HttpSampleDecoderFilterConfig::createFilter(const dosa::Dosa& proto_config, FactoryContext&) {
+  // Filter::DosaConfigConstSharedPtr config =
+  //     std::make_shared<Filter::DosaConfig>(
+  //         Filter::DosaConfig(proto_config, context.clusterManager()));
+  Filter::DosaConfigConstSharedPtr config =
+      std::make_shared<Filter::DosaConfig>(
+          Filter::DosaConfig(proto_config));
 
-  return [config](Http::FilterChainFactoryCallbacks& callbacks) -> void {
-    auto filter = new Http::HttpSampleDecoderFilter(config);
-    callbacks.addStreamFilter(Http::StreamFilterSharedPtr{filter});
+  return [config](Network::FilterManager& filter_manager) -> void {
+    auto filter = new Filter::HttpSampleDecoderFilter(config);
+    filter_manager.addFilter(Network::FilterSharedPtr{filter});
   };
 }
 
 /**
  * Static registration for this sample filter. @see RegisterFactory.
  */
-static Registry::RegisterFactory<HttpSampleDecoderFilterConfig, NamedHttpFilterConfigFactory>
-    register_;
+// static Registry::RegisterFactory<HttpSampleDecoderFilterConfig, NamedHttpFilterConfigFactory>
+//     register_;
+
+static Registry::RegisterFactory<HttpSampleDecoderFilterConfig, NamedNetworkFilterConfigFactory>
+    registered_;
 
 } // namespace Configuration
 } // namespace Server

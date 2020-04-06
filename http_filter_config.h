@@ -12,10 +12,9 @@ namespace Envoy {
 namespace Server {
 namespace Configuration {
 
-class HttpSampleDecoderFilterConfig: public NamedHttpFilterConfigFactory {
+class HttpSampleDecoderFilterConfig: public NamedNetworkFilterConfigFactory {
 public:
-  Http::FilterFactoryCb createFilterFactoryFromProto(const Protobuf::Message& config,
-                                                      const std::string& stat_prefix,
+  Network::FilterFactoryCb createFilterFactoryFromProto(const Protobuf::Message& config,
                                                       FactoryContext& context) override;
 
   ProtobufTypes::MessagePtr createEmptyConfigProto() override {
@@ -25,7 +24,7 @@ public:
   std::string name() const override { return "dosa"; }
 
 private:
-  Http::FilterFactoryCb createFilter(const dosa::Dosa& proto_config, FactoryContext&);
+  Network::FilterFactoryCb createFilter(const dosa::Dosa& proto_config, FactoryContext&);
 };
 
 } // Configuration
