@@ -5,10 +5,13 @@
 #include "envoy/server/filter_config.h"
 
 namespace Envoy {
-namespace Http {
+namespace Filter {
 
-DosaConfig::DosaConfig(const dosa::Dosa& proto_config, Upstream::ClusterManager& cm):
-  cm_(cm), cluster_(proto_config.cluster()) {}
+// DosaConfig::DosaConfig(const dosa::Dosa& proto_config, Upstream::ClusterManager& cm):
+//   cm_(cm), cluster_(proto_config.cluster()) {}
+
+DosaConfig::DosaConfig(const dosa::Dosa& proto_config):
+  cluster_(proto_config.cluster()) {}
 
 bool DosaEngine::isKeyInCache(std::string key){
   return true;
@@ -23,8 +26,25 @@ HttpSampleDecoderFilter::HttpSampleDecoderFilter(
 
 HttpSampleDecoderFilter::~HttpSampleDecoderFilter() {}
 
-void HttpSampleDecoderFilter::onDestroy() {}
+Network::FilterStatus HttpSampleDecoderFilter::onWrite(Buffer::Instance&, bool){
+  return Network::FilterStatus::Continue;
+}
 
+Network::FilterStatus HttpSampleDecoderFilter::onData(Buffer::Instance&, bool){
+  return Network::FilterStatus::Continue;
+}
+
+Network::FilterStatus HttpSampleDecoderFilter::onNewConnection(){
+  return Network::FilterStatus::Continue;
+}
+
+void HttpSampleDecoderFilter::initializeReadFilterCallbacks(Network::ReadFilterCallbacks& callbacks){
+  read_callbacks_ = &callbacks;
+}
+
+// void HttpSampleDecoderFilter::onDestroy() {}
+
+/*
 FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& headers, bool) {
   ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, headers);
   ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, count_++);
@@ -124,6 +144,6 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
 void HttpSampleDecoderFilter::onFailure(const AsyncClient::Request&, AsyncClient::FailureReason){
   return;
 }
-
-} // namespace Http
+*/
+} // namespace Filter
 } // namespace Envoy
