@@ -26,6 +26,7 @@ envoy_cc_library(
     repository = "@envoy",
     deps = [
         ":pkg_cc_proto",
+        "@envoy//source/extensions/filters/network/common/redis:codec_interface",
         "@envoy//source/exe:envoy_common_lib",
     ],
 )
@@ -38,5 +39,6 @@ envoy_cc_library(
     deps = [
         ":dosa_filter_lib",
         "@envoy//include/envoy/server:filter_config_interface",
+        "@envoy//source/extensions/filters/network/common/redis:codec_lib",
     ],
 )

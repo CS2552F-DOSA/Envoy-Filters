@@ -4,6 +4,8 @@
 
 #include "envoy/server/filter_config.h"
 
+#include "extensions/filters/network/common/redis/codec.h"
+
 namespace Envoy {
 namespace Filter {
 
@@ -21,8 +23,8 @@ bool DosaEngine::isKeyInCache(std::string key){
 DosaEngine HttpSampleDecoderFilter::engine_ = DosaEngine();
 
 HttpSampleDecoderFilter::HttpSampleDecoderFilter(
-    DosaConfigConstSharedPtr config)
-    : config_(config){}
+    DosaConfigConstSharedPtr config, Redis::DecoderFactory& factory)
+    : config_(config), decoder_(factory.create(*this)){}
 
 HttpSampleDecoderFilter::~HttpSampleDecoderFilter() {}
 
@@ -30,8 +32,19 @@ Network::FilterStatus HttpSampleDecoderFilter::onWrite(Buffer::Instance&, bool){
   return Network::FilterStatus::Continue;
 }
 
-Network::FilterStatus HttpSampleDecoderFilter::onData(Buffer::Instance&, bool){
-  return Network::FilterStatus::Continue;
+Network::FilterStatus HttpSampleDecoderFilter::onData(Buffer::Instance& data, bool){
+    try {
+    decoder_->decode(data);
+    return Network::FilterStatus::Continue;
+  } catch (Redis::ProtocolError&) {
+    // Redis::RespValue error;
+    // error.type(Redis::RespType::Error);
+    // error.asString() = "downstream protocol error";
+    // encoder_->encode(error, encoder_buffer_);
+    // callbacks_->connection().write(encoder_buffer_, false);
+    // callbacks_->connection().close(Network::ConnectionCloseType::NoFlush);
+    return Network::FilterStatus::StopIteration;
+  }
 }
 
 Network::FilterStatus HttpSampleDecoderFilter::onNewConnection(){
@@ -41,6 +54,21 @@ Network::FilterStatus HttpSampleDecoderFilter::onNewConnection(){
 void HttpSampleDecoderFilter::initializeReadFilterCallbacks(Network::ReadFilterCallbacks& callbacks){
   read_callbacks_ = &callbacks;
 }
+
+void HttpSampleDecoderFilter::onRespValue(Redis::RespValuePtr&& value) {
+  ENVOY_LOG(info, "Dosa::decodeHeaders");
+  ENVOY_LOG(info, "{}", value->toString());
+  // pending_requests_.emplace_back(*this);
+  // PendingRequest& request = pending_requests_.back();
+  // CommandSplitter::SplitRequestPtr split = splitter_.makeRequest(std::move(value), request);
+  // if (split) {
+  //   // The splitter can immediately respond and destroy the pending request. Only store the handle
+  //   // if the request is still alive.
+  //   request.request_handle_ = std::move(split);
+  // }
+}
+
+
 
 // void HttpSampleDecoderFilter::onDestroy() {}
 

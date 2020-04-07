@@ -4,6 +4,8 @@
 
 #include "envoy/registry/registry.h"
 
+#include "extensions/filters/network/common/redis/codec_impl.h"
+
 #include "http_filter.pb.h"
 #include "http_filter.pb.validate.h"
 #include "http_filter.h"

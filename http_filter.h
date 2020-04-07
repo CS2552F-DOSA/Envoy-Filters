@@ -6,10 +6,14 @@
 #include "envoy/server/filter_config.h"
 #include "envoy/network/filter.h"
 
+#include "extensions/filters/network/common/redis/codec.h"
+
 #include "http_filter.pb.h"
 
 namespace Envoy {
 namespace Filter {
+
+namespace Redis = Extensions::NetworkFilters::Common::Redis;
 
 class DosaEngine {
 public:
@@ -39,10 +43,10 @@ public:
 typedef std::shared_ptr<const DosaConfig> DosaConfigConstSharedPtr;
 
 class HttpSampleDecoderFilter : Logger::Loggable<Logger::Id::filter>,
-                                public Network::Filter {
-                                // public AsyncClient::Callbacks{
+                                public Network::Filter,
+                                public Redis::DecoderCallbacks{
 public:
-  HttpSampleDecoderFilter(DosaConfigConstSharedPtr);
+  HttpSampleDecoderFilter(DosaConfigConstSharedPtr, Redis::DecoderFactory&);
   ~HttpSampleDecoderFilter();
 
   // HTTP filter legacy
@@ -64,22 +68,29 @@ public:
   // void setDecoderFilterCallbacks(StreamDecoderFilterCallbacks&) override;
   // void setEncoderFilterCallbacks(StreamEncoderFilterCallbacks&) override;
 
+  // // Http::AsyncClient::Callbacks
+  // void onSuccess(const AsyncClient::Request&, ResponseMessagePtr&&) override;
+  // void onFailure(const AsyncClient::Request&, AsyncClient::FailureReason) override;
+
   Network::FilterStatus onWrite(Buffer::Instance&, bool) override;
   Network::FilterStatus onData(Buffer::Instance&, bool) override;
   Network::FilterStatus onNewConnection() override;
   void initializeReadFilterCallbacks(Network::ReadFilterCallbacks&) override;
   // void initializeWriteFilterCallbacks(WriteFilterCallbacks&) override;
 
-  // // Http::AsyncClient::Callbacks
-  // void onSuccess(const AsyncClient::Request&, ResponseMessagePtr&&) override;
-  // void onFailure(const AsyncClient::Request&, AsyncClient::FailureReason) override;
+  // Common::Redis::DecoderCallbacks
+  void onRespValue(Redis::RespValuePtr&& value) override;
 
 private:
   const DosaConfigConstSharedPtr config_;
   static DosaEngine engine_;
   int count_ = 0;
+
+  Redis::DecoderPtr decoder_;
   // bool decodeCacheCheck_ = false;
   // bool decodeDoNotChange_ = true;
+
+  Network::ReadFilterCallbacks* read_callbacks_{};
 
   // HTTP legacy
   // HeaderMap* copiedHeaders;
@@ -89,8 +100,6 @@ private:
   // StreamEncoderFilterCallbacks* encoder_callbacks_{};
 
   // Http::AsyncClient::Request* test_request_{};
-
-  Network::ReadFilterCallbacks* read_callbacks_{};
 };
 
 } // namespace Filter
