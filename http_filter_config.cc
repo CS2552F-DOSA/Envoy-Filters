@@ -24,7 +24,8 @@ Network::FilterFactoryCb HttpSampleDecoderFilterConfig::createFilter(const dosa:
   //         Filter::DosaConfig(proto_config));
 
   return [config](Network::FilterManager& filter_manager) -> void {
-    auto filter = new Filter::HttpSampleDecoderFilter(config);
+    Extensions::NetworkFilters::Common::Redis::DecoderFactoryImpl factory;
+    auto filter = new Filter::HttpSampleDecoderFilter(config, factory);
     filter_manager.addFilter(Network::FilterSharedPtr{filter});
   };
 }
