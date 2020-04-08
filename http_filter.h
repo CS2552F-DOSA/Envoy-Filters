@@ -4,6 +4,7 @@
 #include <unordered_set>
 
 #include "envoy/server/filter_config.h"
+#include "envoy/network/connection.h"
 #include "envoy/network/filter.h"
 
 #include "extensions/filters/network/common/redis/codec.h"
@@ -45,6 +46,7 @@ typedef std::shared_ptr<const DosaConfig> DosaConfigConstSharedPtr;
 class HttpSampleDecoderFilter : Logger::Loggable<Logger::Id::filter>,
                                 public Network::Filter,
                                 public Redis::DecoderCallbacks{
+                                //public Network::ConnectionCallbacks{
 public:
   HttpSampleDecoderFilter(DosaConfigConstSharedPtr, Redis::DecoderFactory&);
   ~HttpSampleDecoderFilter();
@@ -77,6 +79,11 @@ public:
   Network::FilterStatus onNewConnection() override;
   void initializeReadFilterCallbacks(Network::ReadFilterCallbacks&) override;
   // void initializeWriteFilterCallbacks(WriteFilterCallbacks&) override;
+
+  // // Network::ConnectionCallbacks
+  // void onEvent(Network::ConnectionEvent event) override;
+  // void onAboveWriteBufferHighWatermark() override {}
+  // void onBelowWriteBufferLowWatermark() override {}
 
   // Common::Redis::DecoderCallbacks
   void onRespValue(Redis::RespValuePtr&& value) override;

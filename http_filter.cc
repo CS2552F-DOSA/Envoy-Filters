@@ -28,14 +28,55 @@ HttpSampleDecoderFilter::HttpSampleDecoderFilter(
 
 HttpSampleDecoderFilter::~HttpSampleDecoderFilter() {}
 
-Network::FilterStatus HttpSampleDecoderFilter::onWrite(Buffer::Instance&, bool){
-  return Network::FilterStatus::Continue;
+Network::FilterStatus HttpSampleDecoderFilter::onWrite(Buffer::Instance& data, bool){
+  try {
+    ENVOY_LOG(info, "Start decode data on onWrite");
+    decoder_->decode(data);
+
+    if(false){
+      // Upstream::Host::CreateConnectionData info =
+      //   config_->cm_.tcpConnForCluster(config_->cluster_, nullptr);
+      // connection_ = std::move(info.connection_);
+      // connection_->addConnectionCallbacks(*this);
+      // connection_->connect();
+      // connection_->write(data, false);
+    }
+
+    if(true){
+      return Network::FilterStatus::Continue;
+    } else {
+      return Network::FilterStatus::Continue;
+    }
+  } catch (Redis::ProtocolError&) {
+    // Redis::RespValue error;
+    // error.type(Redis::RespType::Error);
+    // error.asString() = "downstream protocol error";
+    // encoder_->encode(error, encoder_buffer_);
+    // callbacks_->connection().write(encoder_buffer_, false);
+    // callbacks_->connection().close(Network::ConnectionCloseType::NoFlush);
+    return Network::FilterStatus::StopIteration;
+  }
 }
 
 Network::FilterStatus HttpSampleDecoderFilter::onData(Buffer::Instance& data, bool){
-    try {
+  try {
+    ENVOY_LOG(info, "Start decode data on onData");
     decoder_->decode(data);
-    return Network::FilterStatus::Continue;
+
+    if(false){
+      // Upstream::Host::CreateConnectionData info =
+      //   config_->cm_.tcpConnForCluster(config_->cluster_, nullptr);
+      // connection_ = std::move(info.connection_);
+      // connection_->addConnectionCallbacks(*this);
+      // connection_->connect();
+      // connection_->write(data, false);
+    }
+
+    if(true){
+      return Network::FilterStatus::Continue;
+    } else {
+      return Network::FilterStatus::Continue;
+    }
   } catch (Redis::ProtocolError&) {
     // Redis::RespValue error;
     // error.type(Redis::RespType::Error);
