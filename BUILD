@@ -27,6 +27,7 @@ envoy_cc_library(
     deps = [
         ":pkg_cc_proto",
         "@envoy//source/exe:envoy_common_lib",
+        "@envoy//source/common/http:message_lib",
     ],
 )
 

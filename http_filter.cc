@@ -1,11 +1,16 @@
 #include <string>
 
 #include "http_filter.h"
+#include <chrono>
+#include <cstdint>
 
 #include "envoy/server/filter_config.h"
+#include "common/http/message_impl.h"
 
 namespace Envoy {
 namespace Http {
+
+static LowerCaseString Method{":method"};
 
 DosaConfig::DosaConfig(const dosa::Dosa& proto_config, Upstream::ClusterManager& cm):
   cm_(cm), cluster_(proto_config.cluster()) {}
@@ -14,7 +19,7 @@ DosaEngine HttpSampleDecoderFilter::engine_ = DosaEngine();
 
 HttpSampleDecoderFilter::HttpSampleDecoderFilter(
     DosaConfigConstSharedPtr config)
-    : config_(config){}
+    : config_(config), filter_state_(FilterState::Null){}
 
 HttpSampleDecoderFilter::~HttpSampleDecoderFilter() {}
 
@@ -22,7 +27,23 @@ void HttpSampleDecoderFilter::onDestroy() {}
 
 FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& headers, bool) {
   ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, headers);
-  ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, count_++);
+  if(headers.get(Method)->value() == "GET"){
+    ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, count_);
+    RequestMessagePtr request(new RequestMessageImpl(
+      createHeaderMap<RequestHeaderMapImpl>(headers)));
+    // request->headers().insertMethod().value(Http::Headers::get().MethodValues.Post);
+    // request->headers().insertPath().value(std::string("/ambassador/auth"));
+    request->headers().setHost(config_->cluster_); // cluster name is Host: header value!
+    // request->headers().insertContentType().value(std::string("application/json"));
+    // request->headers().insertContentLength().value(request_body.size());
+    // request->body() = Buffer::InstancePtr(new Buffer::OwnedImpl(request_body));
+    test_request_ =
+        config_->cm_.httpAsyncClientForCluster(config_->cluster_)
+            .send(std::move(request), *this,
+            AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
+    filter_state_ = FilterState::GetDupSent;
+    return FilterHeadersStatus::Continue;
+  }
   return FilterHeadersStatus::Continue;
 
   // if(copiedHeaders){
@@ -89,6 +110,16 @@ Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderM
 }
 
 Http::FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance&, bool){
+  if(filter_state_ == FilterState::GetDupSent){
+    ENVOY_LOG(info, "1");
+    return FilterDataStatus::StopIterationAndBuffer;
+  }
+
+  if(filter_state_ == FilterState::GetDupRecv){
+    ENVOY_LOG(info, "2");
+    return FilterDataStatus::Continue;
+  }
+
   return FilterDataStatus::Continue;
 }
 
@@ -117,6 +148,10 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
 }
 
 void HttpSampleDecoderFilter::onFailure(const AsyncClient::Request&, AsyncClient::FailureReason){
+  ENVOY_LOG(info, "onFailure was invoked");
+  filter_state_ = FilterState::GetDupRecv;
+  encoder_callbacks_->continueEncoding();
+  test_request_ = nullptr;
   return;
 }
 

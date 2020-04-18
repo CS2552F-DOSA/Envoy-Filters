@@ -10,6 +10,8 @@
 namespace Envoy {
 namespace Http {
 
+enum FilterState { Null, GetDupSent, GetDupRecv };
+
 class DosaEngine {
 public:
   DosaEngine(){};
@@ -67,16 +69,17 @@ private:
   const DosaConfigConstSharedPtr config_;
   static DosaEngine engine_;
   int count_ = 0;
+  FilterState filter_state_;
   // bool decodeCacheCheck_ = false;
   // bool decodeDoNotChange_ = true;
 
-  // HeaderMap* copiedHeaders;
+  HeaderMap* copiedHeaders{};
   // HeaderMap* copiedTrailers;
 
   StreamDecoderFilterCallbacks* decoder_callbacks_{};
   StreamEncoderFilterCallbacks* encoder_callbacks_{};
 
-  // Http::AsyncClient::Request* test_request_{};
+  Http::AsyncClient::Request* test_request_{};
 };
 
 } // namespace Http

@@ -43,5 +43,5 @@ static_resources:
           http_filters:
             - name: dosa
               config:
-                cluster: test
+                cluster: cluster_0
             - name: envoy.filters.http.router
