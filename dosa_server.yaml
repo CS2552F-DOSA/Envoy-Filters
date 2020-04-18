@@ -41,7 +41,7 @@ static_resources:
               - match: { prefix: "/" }
                 route: { cluster: cluster_0 }
           http_filters:
-            - name: dosa
-              config:
-                cluster: cluster_0
+            # - name: dosa
+            #   config:
+            #     cluster: cluster_0
             - name: envoy.filters.http.router

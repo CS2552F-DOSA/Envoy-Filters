@@ -2,6 +2,8 @@
 
 #include <string>
 #include <unordered_set>
+#include <mutex>
+#include <condition_variable> // std::condition_variable
 
 #include "envoy/server/filter_config.h"
 
@@ -10,7 +12,7 @@
 namespace Envoy {
 namespace Http {
 
-enum FilterState { Null, GetDupSent, GetDupRecv };
+enum FilterState { Null, GetDupSent, GetDupRecv, GetDupWait };
 
 class DosaEngine {
 public:
@@ -69,17 +71,22 @@ private:
   const DosaConfigConstSharedPtr config_;
   static DosaEngine engine_;
   int count_ = 0;
+
+  // Filter state Set
+  std::mutex mtx_;
+  std::condition_variable cv_;
   FilterState filter_state_;
   // bool decodeCacheCheck_ = false;
   // bool decodeDoNotChange_ = true;
 
-  HeaderMap* copiedHeaders{};
+  // HeaderMap* copiedHeaders{};
   // HeaderMap* copiedTrailers;
 
   StreamDecoderFilterCallbacks* decoder_callbacks_{};
   StreamEncoderFilterCallbacks* encoder_callbacks_{};
 
   Http::AsyncClient::Request* test_request_{};
+  std::string test_response_body_;
 };
 
 } // namespace Http

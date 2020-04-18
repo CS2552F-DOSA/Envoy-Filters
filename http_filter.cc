@@ -3,6 +3,8 @@
 #include "http_filter.h"
 #include <chrono>
 #include <cstdint>
+#include <mutex>
+#include <condition_variable> // std::condition_variable
 
 #include "envoy/server/filter_config.h"
 #include "common/http/message_impl.h"
@@ -43,7 +45,9 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
             AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
     filter_state_ = FilterState::GetDupSent;
     return FilterHeadersStatus::Continue;
-  }
+  } else if()(
+
+  )
   return FilterHeadersStatus::Continue;
 
   // if(copiedHeaders){
@@ -110,16 +114,13 @@ Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderM
 }
 
 Http::FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance&, bool){
-  if(filter_state_ == FilterState::GetDupSent){
-    ENVOY_LOG(info, "1");
-    return FilterDataStatus::StopIterationAndBuffer;
-  }
+  ENVOY_LOG(info, "The encode data called");
+  std::unique_lock<std::mutex> lck(mtx_);
+  while (filter_state_ != FilterState::GetDupRecv) cv_.wait(lck);
+  lck.unlock();
 
-  if(filter_state_ == FilterState::GetDupRecv){
-    ENVOY_LOG(info, "2");
-    return FilterDataStatus::Continue;
-  }
-
+  // TODO: Compare the timestamp and modify the package.
+  ENVOY_LOG(info, "The encode data returned");
   return FilterDataStatus::Continue;
 }
 
@@ -143,15 +144,37 @@ void HttpSampleDecoderFilter::setEncoderFilterCallbacks(StreamEncoderFilterCallb
   encoder_callbacks_ = &callbacks;
 }
 
-void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMessagePtr&&){
+void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMessagePtr&& response){
+  ENVOY_LOG(info, "onSuccess was invoked");
+  test_request_ = nullptr;
+  std::unique_lock<std::mutex> lck(mtx_);
+  if(filter_state_ == FilterState::GetDupWait){
+    filter_state_ = FilterState::GetDupRecv;
+    cv_.notify_all();
+  }
+  filter_state_ = FilterState::GetDupRecv;
+  lck.unlock();
+
+  // TODO: store the package
+  test_response_body_ = response->bodyAsString();
+  if (Http::Utility::getResponseStatus(response->headers()) != enumToInt(Http::Code::OK)) {
+    ENVOY_LOG(info, "The dup request recvs a not 200");
+  } else {
+    ENVOY_LOG(info, "The dup request recvs a 200");
+  }
+
+  ENVOY_LOG(info, "onSuccess returned");
   return;
 }
 
 void HttpSampleDecoderFilter::onFailure(const AsyncClient::Request&, AsyncClient::FailureReason){
   ENVOY_LOG(info, "onFailure was invoked");
-  filter_state_ = FilterState::GetDupRecv;
-  encoder_callbacks_->continueEncoding();
   test_request_ = nullptr;
+  std::unique_lock<std::mutex> lck(mtx_);
+  if(filter_state_ == FilterState::GetDupWait){
+    cv_.notify_all();
+  }
+  filter_state_ = FilterState::GetDupRecv;
   return;
 }
 
