@@ -27,6 +27,7 @@ envoy_cc_library(
     deps = [
         ":pkg_cc_proto",
         "@envoy//source/extensions/filters/network/common/redis:codec_interface",
+        "@envoy//source/common/buffer:buffer_lib",
         "@envoy//include/envoy/network:connection_interface",
         "@envoy//source/exe:envoy_common_lib",
     ],

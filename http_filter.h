@@ -14,6 +14,7 @@
 namespace Envoy {
 namespace Filter {
 
+enum class FilterState { RequestNotRead, RequestReading, Get, Set, ResponseReading};
 namespace Redis = Extensions::NetworkFilters::Common::Redis;
 
 class DosaEngine {
@@ -94,19 +95,15 @@ private:
   int count_ = 0;
 
   Redis::DecoderPtr decoder_;
-  // bool decodeCacheCheck_ = false;
-  // bool decodeDoNotChange_ = true;
+  // request command type
+  FilterState filter_state_;
+  // request parameters
+  std::string key_, value_;
+  // response value
+  Redis::RespValue* response_resp_;
 
+  Network::ClientConnectionPtr connection_;
   Network::ReadFilterCallbacks* read_callbacks_{};
-
-  // HTTP legacy
-  // HeaderMap* copiedHeaders;
-  // HeaderMap* copiedTrailers;
-
-  // StreamDecoderFilterCallbacks* decoder_callbacks_{};
-  // StreamEncoderFilterCallbacks* encoder_callbacks_{};
-
-  // Http::AsyncClient::Request* test_request_{};
 };
 
 } // namespace Filter

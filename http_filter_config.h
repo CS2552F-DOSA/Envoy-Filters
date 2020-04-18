@@ -25,6 +25,8 @@ public:
 
   std::string name() const override { return "dosa"; }
 
+  bool isTerminalFilter() override { return true; }
+
 private:
   Network::FilterFactoryCb createFilter(const dosa::Dosa& proto_config, FactoryContext&);
 };
