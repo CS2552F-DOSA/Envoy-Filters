@@ -18,11 +18,8 @@ public:
   int getCount() {
     return count_ ++;
   }
-
-  bool isKeyInCache(std::string);
 private:
   int count_ = 0;
-  std::unordered_set<std::string> cache_;
 };
 
 /**
