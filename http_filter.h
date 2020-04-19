@@ -8,6 +8,7 @@
 
 #include "http_filter.pb.h"
 
+
 namespace Envoy {
 namespace Http {
 
@@ -19,12 +20,15 @@ public:
   int getCount() {
     return count_ ++;
   }
-  void set_id_with_timestamp(const std::string& id, const int64_t timestamp) {
+
+  // Set file id and its "prod envoy" timestamp.
+  void set_id_with_timestamp(std::string& id, const int64_t timestamp) {
     this->id_to_timestamp_[id] = timestamp;
   }
 
-  pair<bool, int64_t> get_timestamp_from_id(const std::string& id) {
-    if (id_to_timestamp_.count(id)) {
+  // Return the pair for the id. If the id is in this->id_to_timestamp_, then return the <true, timestamp>, if not return <false, 0>.
+  std::pair<bool, int64_t> get_timestamp_from_id(std::string& id) {
+    if (this->id_to_timestamp_.find(id) == this->id_to_timestamp_.end()) {
       return std::make_pair(true, this->id_to_timestamp_[id]);
     } else {
       return std::make_pair(false, 0);
@@ -32,6 +36,7 @@ public:
   }
 private:
   int count_ = 0;
+  // Map for maintaining id -> timestamp.
   std::unordered_map<std::string, int64_t> id_to_timestamp_;
 };
 

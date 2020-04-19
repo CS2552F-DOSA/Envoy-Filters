@@ -5,6 +5,10 @@
 #include "chrono"
 #include "envoy/server/filter_config.h"
 
+// #include "absl/strings/str_join.h"
+// #include "absl/strings/string_view.h"
+// #include "absl/strings/str_split.h"
+
 namespace Envoy {
 namespace Http {
 
@@ -36,8 +40,8 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
   } else if (headers.get(Method)->value() == "POST") {
     headers.setHost(config_->cluster_);
 
-    // get id from url.
-    std::string_view url = headers.EnvoyOriginalUrl()->value().getStringView();
+    // get url.
+    std::string url = std::string(headers.EnvoyOriginalUrl()->value().getStringView());
 
     // Currently use url as id.
     std::string id = url;
@@ -45,7 +49,8 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     // get timestamp for the id.
     const auto p1 = std::chrono::system_clock::now();
     int64_t file_time_stamp = std::chrono::duration_cast<std::chrono::nanoseconds>(p1.time_since_epoch()).count();
-    std::cout << "file timestamp: " << filetime_stamp << '\n';
+    // std::cout << "file timestamp: " << filetime_stamp << '\n';
+    ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, file_time_stamp);
 
     // store id, timestamp for the file.
     this->engine_.set_id_with_timestamp(id, file_time_stamp);
