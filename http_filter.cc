@@ -45,8 +45,10 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
             AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
     filter_state_ = FilterState::GetDupSent;
     return FilterHeadersStatus::Continue;
-  } else if()(
-
+  } else if(headers.get(Method)->value() == "POST")(
+    headers.setHost(config_->cluster_);
+    // TODO: we might need to ask for time
+    return FilterHeadersStatus::Continue;
   )
   return FilterHeadersStatus::Continue;
 
