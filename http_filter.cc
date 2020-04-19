@@ -30,6 +30,8 @@ void HttpSampleDecoderFilter::onDestroy() {}
 FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& headers, bool) {
   ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, headers);
   if(headers.get(Method)->value() == "GET"){
+    filter_type_ = FilterType::Get;
+
     ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, count_);
     RequestMessagePtr request(new RequestMessageImpl(
       createHeaderMap<RequestHeaderMapImpl>(headers)));
@@ -46,66 +48,38 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     filter_state_ = FilterState::GetDupSent;
     return FilterHeadersStatus::Continue;
   } else if(headers.get(Method)->value() == "POST")(
+    filter_state_ = FilterState::PostDupSent;
+    filter_type_ = FilterType::Post;
+
+    // Send the timequery to prod server
+    RequestMessagePtr request(new RequestMessageImpl(
+      createHeaderMap<RequestHeaderMapImpl>(headers)));
+    // TODO: nextline should be prod cluster_
+    request->headers().setHost(config_->cluster_); // cluster name is Host: header value!
+    // TODO: ask for time
+    test_request_ =
+        config_->cm_.httpAsyncClientForCluster(config_->cluster_)
+            .send(std::move(request), *this,
+            AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
+    
+    // Wait for the reponse
+    std::unique_lock<std::mutex> lck(mtx_);
+    while (filter_state_ != FilterState::PostDupRecv) cv_.wait(lck);
+    lck.unlock();
+
+    // Send the write
     headers.setHost(config_->cluster_);
-    // TODO: we might need to ask for time
+    // TODO: set the timestamp
     return FilterHeadersStatus::Continue;
   )
   return FilterHeadersStatus::Continue;
-
-  // if(copiedHeaders){
-  //   copiedHeaders = Http::HeaderMapPtr{new Http::HeaderMapImpl(*headers)};
-  //   decoder_callbacks_->continueDecoding();
-  // }
-
-  // if(decodeCacheCheck_){
-  //   // The decodeData checked the cache
-  //   if(decodeDoNotChange_){
-  //     return FilterHeadersStatus::Continue;
-  //   } else {
-  //     // // Change the header to test database
-  //     // std::string host = headers->Host()->value().c_str();
-  //     // ASSERT(!host.empty());
-  //     // host += "_test";
-  //     // headers->Host()->value(host);
-  //     return FilterHeadersStatus::Continue;
-  //   }
-  // } else {
-  //   // We do not check the cache.
-  //   return FilterHeadersStatus::StopIteration;
-  // }
 }
 
 FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bool) {
-  // if(!decodeCacheCheck_){
-  //   // TODO: Decode the data
-  //   std::string key = "TODO:";s
-
-  //   // Note: The order is important
-  //   // decodeDoNotChange_ = !engine_.isKeyInCache(key);
-  //   decodeDoNotChange_ = true;
-  //   decodeCacheCheck_ = true;
-
-  //   decoder_callbacks_->continueDecoding();
-  // }
-
-  // if(decodeDoNotChange_){
-  //   if(copiedHeaders && copiedTrailers){
-  //     // TODO: shadow the request to the test server
-  //     Http::MessagePtr request(new Http::RequestMessageImpl(copiedHeaders));
-  //     request->body().reset(new Buffer::OwnedImpl(*callbacks_->decodingBuffer()));
-  //   } else {
-  //     return FilterDataStatus::StopIterationAndBuffer;
-  //   }
-  // }
-
   return FilterDataStatus::Continue;
 }
 
 FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&){
-  // if(copiedTrailers){
-  //   copiedTrailers = Http::HeaderMapPtr{new Http::HeaderMapImpl(*trailers)};
-  //   decoder_callbacks_->continueDecoding();
-  // }
   return FilterTrailersStatus::Continue;
 }
 
@@ -115,13 +89,16 @@ Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderM
   return FilterHeadersStatus::Continue;
 }
 
-Http::FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance&, bool){
+Http::FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance& data, bool){
   ENVOY_LOG(info, "The encode data called");
   std::unique_lock<std::mutex> lck(mtx_);
   while (filter_state_ != FilterState::GetDupRecv) cv_.wait(lck);
   lck.unlock();
 
-  // TODO: Compare the timestamp and modify the package.
+  // TODO: Compare the timestamp
+  if(false){
+    data = new Buffer::OwnedImpl(test_response_body_);
+  }
   ENVOY_LOG(info, "The encode data returned");
   return FilterDataStatus::Continue;
 }
@@ -148,21 +125,37 @@ void HttpSampleDecoderFilter::setEncoderFilterCallbacks(StreamEncoderFilterCallb
 
 void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMessagePtr&& response){
   ENVOY_LOG(info, "onSuccess was invoked");
-  test_request_ = nullptr;
-  std::unique_lock<std::mutex> lck(mtx_);
-  if(filter_state_ == FilterState::GetDupWait){
+  if(filter_type_ == FilterType::Get){
+    test_request_ = nullptr;
+    std::unique_lock<std::mutex> lck(mtx_);
+    if(filter_state_ == FilterState::GetDupWait){
+      filter_state_ = FilterState::GetDupRecv;
+      cv_.notify_all();
+    }
     filter_state_ = FilterState::GetDupRecv;
-    cv_.notify_all();
-  }
-  filter_state_ = FilterState::GetDupRecv;
-  lck.unlock();
+    lck.unlock();
 
-  // TODO: store the package
-  test_response_body_ = response->bodyAsString();
-  if (Http::Utility::getResponseStatus(response->headers()) != enumToInt(Http::Code::OK)) {
-    ENVOY_LOG(info, "The dup request recvs a not 200");
+    // store the package
+    test_response_body_ = response->bodyAsString();
+    if (Http::Utility::getResponseStatus(response->headers()) != enumToInt(Http::Code::OK)) {
+      ENVOY_LOG(info, "The dup request recvs a not 200");
+    } else {
+      ENVOY_LOG(info, "The dup request recvs a 200");
+    }
   } else {
-    ENVOY_LOG(info, "The dup request recvs a 200");
+    test_request_ = nullptr;
+    std::unique_lock<std::mutex> lck(mtx_);
+    filter_state_ = FilterState::PostDupRecv;
+    cv_.notify_all();
+    lck.unlock();
+
+    // TODO: store the timestamp
+    // test_response_body_ = response->bodyAsString();
+    if (Http::Utility::getResponseStatus(response->headers()) != enumToInt(Http::Code::OK)) {
+      ENVOY_LOG(info, "The dup request recvs a not 200");
+    } else {
+      ENVOY_LOG(info, "The dup request recvs a 200");
+    }
   }
 
   ENVOY_LOG(info, "onSuccess returned");

@@ -12,7 +12,8 @@
 namespace Envoy {
 namespace Http {
 
-enum FilterState { Null, GetDupSent, GetDupRecv, GetDupWait };
+enum FilterType { Get, Post };
+enum FilterState { Null, GetDupSent, GetDupRecv, GetDupWait, PostDupSent, PostDupRecv };
 
 class DosaEngine {
 public:
@@ -76,6 +77,7 @@ private:
   std::mutex mtx_;
   std::condition_variable cv_;
   FilterState filter_state_;
+  FiltertType filter_type_;
   // bool decodeCacheCheck_ = false;
   // bool decodeDoNotChange_ = true;
 
