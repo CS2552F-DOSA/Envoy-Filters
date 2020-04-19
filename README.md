@@ -20,13 +20,15 @@ We do not have uint test and integration test. To test or experimentw with this 
 ```
 $ git submodule update --init
 $ docker run -it --rm -v `pwd`:/source -w /source envoyproxy/envoy-build:latest /bin/bash
-$ docker build //:envoy
+$ bazel build //:envoy
 $ bazel-bin/envoy -c dosa_server.yaml -l info 2>&1
 ```
 
 On another terminal (better within the container), you can try to send some messages to the Envoy now:
 
 ```
+$ docker ps
+$ docker exec -it the_id_of_the_container_above bash
 $ curl -v 127.0.0.1:9999/service
 ```
 
