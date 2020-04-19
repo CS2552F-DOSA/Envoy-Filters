@@ -2,6 +2,7 @@
 
 #include <string>
 #include <unordered_set>
+#include <unordered_map>
 
 #include "envoy/server/filter_config.h"
 
@@ -18,8 +19,20 @@ public:
   int getCount() {
     return count_ ++;
   }
+  void set_id_with_timestamp(const std::string& id, const int64_t timestamp) {
+    this->id_to_timestamp_[id] = timestamp;
+  }
+
+  pair<bool, int64_t> get_timestamp_from_id(const std::string& id) {
+    if (id_to_timestamp_.count(id)) {
+      return std::make_pair(true, this->id_to_timestamp_[id]);
+    } else {
+      return std::make_pair(false, 0);
+    }
+  }
 private:
   int count_ = 0;
+  std::unordered_map<std::string, int64_t> id_to_timestamp_;
 };
 
 /**

@@ -2,10 +2,13 @@
 
 #include "http_filter.h"
 
+#include "chrono"
 #include "envoy/server/filter_config.h"
 
 namespace Envoy {
 namespace Http {
+
+static LowerCaseString Method{":method"};
 
 DosaConfig::DosaConfig(const dosa::Dosa& proto_config, Upstream::ClusterManager& cm):
   cm_(cm), cluster_(proto_config.cluster()) {}
@@ -23,6 +26,33 @@ void HttpSampleDecoderFilter::onDestroy() {}
 FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& headers, bool) {
   ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, headers);
   ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, count_++);
+
+  
+
+  if (headers.get(Method)->value() == "GET") {
+
+    return FilterHeadersStatus::Continue;
+
+  } else if (headers.get(Method)->value() == "POST") {
+    headers.setHost(config_->cluster_);
+
+    // get id from url.
+    std::string_view url = headers.EnvoyOriginalUrl()->value().getStringView();
+
+    // Currently use url as id.
+    std::string id = url;
+
+    // get timestamp for the id.
+    const auto p1 = std::chrono::system_clock::now();
+    int64_t file_time_stamp = std::chrono::duration_cast<std::chrono::nanoseconds>(p1.time_since_epoch()).count();
+    std::cout << "file timestamp: " << filetime_stamp << '\n';
+
+    // store id, timestamp for the file.
+    this->engine_.set_id_with_timestamp(id, file_time_stamp);
+
+    return FilterHeadersStatus::Continue;
+  }
+
   return FilterHeadersStatus::Continue;
 
   // if(copiedHeaders){

@@ -25,8 +25,10 @@ git submodule update --init
 mkdir -p dist
 docker run -it --rm -v `pwd`:/source -w /source \
     envoyproxy/envoy-build:latest /bin/bash /source/dosa-build-docker.sh
-docker build -t CS2552F-DOSA/Envoy-Filters:latest .
-docker tag CS2552F-DOSA/Envoy-Filters:latest CS2552F-DOSA/Envoy-Filters:$COMMIT
+# docker build -t CS2552F-DOSA/Envoy-Filters:latest .
+# docker tag CS2552F-DOSA/Envoy-Filters:latest CS2552F-DOSA/Envoy-Filters:$COMMIT
+docker build -t  tiancanyu/envoy-filters:latest .
+docker push  tiancanyu/envoy-filters:latest
 
 if onmaster; then
     # Avoid `set -x` leaking secret info into Travis logs
