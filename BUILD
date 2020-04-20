@@ -27,7 +27,7 @@ envoy_cc_library(
     deps = [
         ":pkg_cc_proto",
         "@envoy//source/exe:envoy_common_lib",
-        # "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings",
     ],
 )
 

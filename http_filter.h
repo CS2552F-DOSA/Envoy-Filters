@@ -28,7 +28,7 @@ public:
 
   // Return the pair for the id. If the id is in this->id_to_timestamp_, then return the <true, timestamp>, if not return <false, 0>.
   std::pair<bool, int64_t> get_timestamp_from_id(std::string& id) {
-    if (this->id_to_timestamp_.find(id) == this->id_to_timestamp_.end()) {
+    if (this->id_to_timestamp_.find(id) != this->id_to_timestamp_.end()) {
       return std::make_pair(true, this->id_to_timestamp_[id]);
     } else {
       return std::make_pair(false, 0);
@@ -37,7 +37,7 @@ public:
 
   // used for test
   std::string print_map() {
-    std::string str;
+    std::string str = "\n";
     for (auto & item : this->id_to_timestamp_) {
       str.append("key-value: ");
       str.append(item.first);
