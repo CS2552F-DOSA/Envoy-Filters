@@ -34,6 +34,27 @@ public:
       return std::make_pair(false, 0);
     }
   }
+
+  // used for test
+  std::string print_map() {
+    std::string str;
+    for (auto & item : this->id_to_timestamp_) {
+      str.append("key-value: ");
+      str.append(item.first);
+      str.append(", ");
+      str.append(std::to_string(long(item.second)));
+      str.append("\n");
+    }
+
+    return str;
+    // example
+    // ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders printmap: " + engine_.print_map() + " {}", *decoder_callbacks_, engine_.get_map_size());
+  }
+
+  size_t get_map_size() {
+    return this->id_to_timestamp_.size();
+  }
+
 private:
   int count_ = 0;
   // Map for maintaining id -> timestamp.
