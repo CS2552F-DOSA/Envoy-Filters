@@ -98,7 +98,7 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     // headers.setHost(config_->cluster_);
 
     // get url.
-    std::string url = std::string(headers.get(URLPath)->value().getStringView());;
+    std::string url = std::string(headers.get(URLPath)->value().getStringView());
 
     // Currently use url as id.
     std::string id = url;
@@ -174,10 +174,9 @@ FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&)
   return FilterTrailersStatus::Continue;
 }
 
-Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap& headers, bool){
-  // // ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, headers);
+Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap&, bool){
+  // ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, headers);
   // ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, count_++);
-  count_++;
   return FilterHeadersStatus::Continue;
 }
 
