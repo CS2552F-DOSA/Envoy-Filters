@@ -25,7 +25,7 @@ git submodule update --init
 mkdir -p dist
 docker run -it --rm -v `pwd`:/source -w /source \
     jzeng9/envoy-filters:latest /bin/bash /source/dosa-build-docker.sh
-docker build -t jzeng9/envoy-filters:latest .
+docker build -t csci2952fmicrocow/prod-storage-envoy:latest .
 
 if onmaster; then
     # Avoid `set -x` leaking secret info into Travis logs
@@ -33,7 +33,7 @@ if onmaster; then
     echo "+docker login..."
     docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
     set -x
-    docker push jzeng9/envoy-filters:latest
+    docker push csci2952fmicrocow/prod-storage-envoy:latest
 else
     echo "not on master; not pushing to Docker Hub"
 fi
