@@ -24,7 +24,7 @@ fi
 git submodule update --init
 mkdir -p dist
 docker run -it --rm -v `pwd`:/source -w /source \
-    jzeng9/envoy-filters:latest /bin/bash /source/dosa-build-docker.sh
+    jzeng9/envoy-dev:latest /bin/bash /source/dosa-build-docker.sh
 docker build -t csci2952fmicrocow/test-service-enovy:latest .
 
 if onmaster; then
