@@ -24,9 +24,8 @@ fi
 git submodule update --init
 mkdir -p dist
 docker run -it --rm -v `pwd`:/source -w /source \
-    envoyproxy/envoy-build:latest /bin/bash /source/dosa-build-docker.sh
-docker build -t CS2552F-DOSA/Envoy-Filters:latest .
-docker tag CS2552F-DOSA/Envoy-Filters:latest CS2552F-DOSA/Envoy-Filters:$COMMIT
+    jzeng9/envoy-filters:latest /bin/bash /source/dosa-build-docker.sh
+docker build -t csci2952fmicrocow/test-service-enovy:latest .
 
 if onmaster; then
     # Avoid `set -x` leaking secret info into Travis logs
@@ -34,8 +33,7 @@ if onmaster; then
     echo "+docker login..."
     docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
     set -x
-    docker push CS2552F-DOSA/Envoy-Filters:latest
-    docker push CS2552F-DOSA/Envoy-Filters:$COMMIT
+    docker push csci2952fmicrocow/test-service-enovy:latest
 else
     echo "not on master; not pushing to Docker Hub"
 fi
