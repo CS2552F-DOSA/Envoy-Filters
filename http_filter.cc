@@ -93,10 +93,12 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     return FilterHeadersStatus::Continue;
 
   } else if (headers.get(Method)->value() == "POST") {
-    headers.setHost(config_->cluster_);
+    ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders2_post: {}", *decoder_callbacks_, headers);
+    
+    // headers.setHost(config_->cluster_);
 
     // get url.
-    std::string url = std::string(headers.EnvoyOriginalUrl()->value().getStringView());
+    std::string url = std::string(headers.get(URLPath)->value().getStringView());;
 
     // Currently use url as id.
     std::string id = url;
@@ -105,7 +107,7 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     const auto p1 = std::chrono::system_clock::now();
     int64_t file_time_stamp = std::chrono::duration_cast<std::chrono::nanoseconds>(p1.time_since_epoch()).count();
     // std::cout << "file timestamp: " << filetime_stamp << '\n';
-    ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders3: {}", *decoder_callbacks_, file_time_stamp);
+    ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders3_post: {}", *decoder_callbacks_, file_time_stamp);
 
     // store id, timestamp for the file.
     this->engine_.set_id_with_timestamp(id, file_time_stamp);
