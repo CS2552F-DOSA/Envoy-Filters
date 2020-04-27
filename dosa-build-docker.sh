@@ -5,6 +5,8 @@
 
 set -ex
 
-bazel --batch build --strategy=Genrule=standalone --spawn_strategy=standalone -c dbg //:envoy
+# bazel --batch build --strategy=Genrule=standalone --spawn_strategy=standalone -c dbg //:envoy
+bazel build //:envoy
 mv bazel-bin/envoy /source/dist/envoy
 rm bazel-*
+
