@@ -31,7 +31,7 @@ void HttpSampleDecoderFilter::onDestroy() {}
 
 FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& headers, bool) {
   // headers.EnvoyOriginalPath()->value()
-  ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders1: {}", *decoder_callbacks_, headers);
+  // ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders1: {}", *decoder_callbacks_, headers);
   // ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders2: {}", *decoder_callbacks_, count_++);
 
   
@@ -47,7 +47,7 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     headers.setCopy(FidTimestamp, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
     
     
-    ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders new headers: {}", *decoder_callbacks_, headers);
+    // ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders new headers: {}", *decoder_callbacks_, headers);
 
     // if (true) {
     //   // test
@@ -93,7 +93,7 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     return FilterHeadersStatus::Continue;
 
   } else if (headers.get(Method)->value() == "POST") {
-    ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders2_post: {}", *decoder_callbacks_, headers);
+    // ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders2_post: {}", *decoder_callbacks_, headers);
     
     // headers.setHost(config_->cluster_);
 
@@ -107,7 +107,7 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     const auto p1 = std::chrono::system_clock::now();
     int64_t file_time_stamp = std::chrono::duration_cast<std::chrono::nanoseconds>(p1.time_since_epoch()).count();
     // std::cout << "file timestamp: " << filetime_stamp << '\n';
-    ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders3_post: {}", *decoder_callbacks_, file_time_stamp);
+    // ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders3_post: {}", *decoder_callbacks_, file_time_stamp);
 
     // store id, timestamp for the file.
     this->engine_.set_id_with_timestamp(id, file_time_stamp);
@@ -175,8 +175,9 @@ FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&)
 }
 
 Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap& headers, bool){
-  ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, headers);
-  ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, count_++);
+  // // ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, headers);
+  // ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, count_++);
+  count_++;
   return FilterHeadersStatus::Continue;
 }
 
