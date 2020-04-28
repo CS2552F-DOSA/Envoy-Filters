@@ -13,7 +13,7 @@ namespace Envoy {
 namespace Http {
 
 enum FilterType { Get, Post };
-enum FilterState { Null, GetDupSent, GetDupRecv, GetDupWait, PostDupSent, PostDupRecv };
+enum FilterState { Null, GetDupSent, GetDupRecv, GetDupWait, PostSent, PostDupRecv };
 
 class DosaEngine {
 public:
@@ -77,7 +77,7 @@ private:
   std::mutex mtx_;
   std::condition_variable cv_;
   FilterState filter_state_;
-  FiltertType filter_type_;
+  FilterType filter_type_;
   // bool decodeCacheCheck_ = false;
   // bool decodeDoNotChange_ = true;
 
@@ -89,6 +89,8 @@ private:
 
   Http::AsyncClient::Request* test_request_{};
   std::string test_response_body_;
+  std::string test_reponse_time_;
+  std::string cluster_;
 };
 
 } // namespace Http
