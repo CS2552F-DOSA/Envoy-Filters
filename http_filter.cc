@@ -95,8 +95,8 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     && FilterState::PostSent == filter_state_){
 
     // use time stamp information and Send the write
-    headers.addCopy(FidTimestamp, test_reponse_time_);
-    headers.setCopy(FidTimestamp, test_reponse_time_);
+    headers.addCopy(FidTimestamp2, test_reponse_time_);
+    headers.setCopy(FidTimestamp2, test_reponse_time_);
     headers.setHost(config_->cluster_);
 
     return FilterHeadersStatus::Continue;
