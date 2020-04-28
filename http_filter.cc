@@ -35,7 +35,6 @@ void HttpSampleDecoderFilter::onDestroy() {}
 FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& headers, bool) {
   // headers.EnvoyOriginalPath()->value()
   // ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders1: {}", *decoder_callbacks_, headers);
-  // ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders2: {}", *decoder_callbacks_, count_++);
 
   if (headers.get(Method)->value() == "GET") {
     std::string url = std::string(headers.get(URLPath)->value().getStringView());
@@ -55,14 +54,12 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
 
       decoder_callbacks_->encodeHeaders(std::move(response_headers), true);
       return FilterHeadersStatus::StopIteration;
+    } else {
+      id_ = id;
     }
 
     // ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders pre map mapsize: " + engine_.print_map() + " {}", *decoder_callbacks_, engine_.get_map_size());
     // ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders val " + std::to_string(long(engine_.get_timestamp_from_id(id).second)) +": {}", *decoder_callbacks_, 21);
-
-    headers.addCopy(FidTimestamp, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
-    headers.setCopy(FidTimestamp, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
-    
     
     // ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders new headers: {}", *decoder_callbacks_, headers);
 
@@ -143,7 +140,11 @@ FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&)
   return FilterTrailersStatus::Continue;
 }
 
-Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap&, bool){
+Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap& headers, bool){
+  if(id_ != ""){
+      headers.addCopy(FidTimestamp2, (std::to_string(long(engine_.get_timestamp_from_id(id_).second))));
+      headers.setCopy(FidTimestamp2, (std::to_string(long(engine_.get_timestamp_from_id(id_).second))));
+  }
   return FilterHeadersStatus::Continue;
 }
 

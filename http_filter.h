@@ -105,7 +105,7 @@ public:
 private:
   const DosaConfigConstSharedPtr config_;
   static DosaEngine engine_;
-  int count_ = 0;
+  std::string id_ = "";
   // bool decodeCacheCheck_ = false;
   // bool decodeDoNotChange_ = true;
 
