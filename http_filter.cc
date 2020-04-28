@@ -47,8 +47,10 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
       id = id.substr(pos);
 
       ResponseHeaderMapPtr response_headers = createHeaderMap<ResponseHeaderMapImpl>(
-        {{Http::Headers::get().Status, "200"},
-        {FidTimestamp, std::to_string(long(engine_.get_timestamp_from_id(id).second))}});
+        {{Http::Headers::get().Status, "200"}});
+      
+      response_headers->addCopy(FidTimestamp, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
+      response_headers->setCopy(FidTimestamp, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
 
       decoder_callbacks_->encodeHeaders(std::move(response_headers), true);
       return FilterHeadersStatus::StopIteration;
@@ -130,67 +132,17 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
   }
 
   return FilterHeadersStatus::Continue;
-
-  // if(copiedHeaders){
-  //   copiedHeaders = Http::HeaderMapPtr{new Http::HeaderMapImpl(*headers)};
-  //   decoder_callbacks_->continueDecoding();
-  // }
-
-  // if(decodeCacheCheck_){
-  //   // The decodeData checked the cache
-  //   if(decodeDoNotChange_){
-  //     return FilterHeadersStatus::Continue;
-  //   } else {
-  //     // // Change the header to test database
-  //     // std::string host = headers->Host()->value().c_str();
-  //     // ASSERT(!host.empty());
-  //     // host += "_test";
-  //     // headers->Host()->value(host);
-  //     return FilterHeadersStatus::Continue;
-  //   }
-  // } else {
-  //   // We do not check the cache.
-  //   return FilterHeadersStatus::StopIteration;
-  // }
 }
 
 FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bool) {
-  // if(!decodeCacheCheck_){
-  //   // TODO: Decode the data
-  //   std::string key = "TODO:";s
-
-  //   // Note: The order is important
-  //   // decodeDoNotChange_ = !engine_.isKeyInCache(key);
-  //   decodeDoNotChange_ = true;
-  //   decodeCacheCheck_ = true;
-
-  //   decoder_callbacks_->continueDecoding();
-  // }
-
-  // if(decodeDoNotChange_){
-  //   if(copiedHeaders && copiedTrailers){
-  //     // TODO: shadow the request to the test server
-  //     Http::MessagePtr request(new Http::RequestMessageImpl(copiedHeaders));
-  //     request->body().reset(new Buffer::OwnedImpl(*callbacks_->decodingBuffer()));
-  //   } else {
-  //     return FilterDataStatus::StopIterationAndBuffer;
-  //   }
-  // }
-
   return FilterDataStatus::Continue;
 }
 
 FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&){
-  // if(copiedTrailers){
-  //   copiedTrailers = Http::HeaderMapPtr{new Http::HeaderMapImpl(*trailers)};
-  //   decoder_callbacks_->continueDecoding();
-  // }
   return FilterTrailersStatus::Continue;
 }
 
 Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap&, bool){
-  // ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, headers);
-  // ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, count_++);
   return FilterHeadersStatus::Continue;
 }
 
