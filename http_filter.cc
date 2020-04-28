@@ -44,11 +44,11 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     if(id[2] == 'i'){
       // This is a ping request from envoy filter
       int pos = id.find("/", 2);
-      id = id.substr(pos+1);
-      headers.addCopy(FidTimestamp, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
-      headers.setCopy(FidTimestamp, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
+      id = id.substr(pos);
 
-      ResponseHeaderMapPtr response_headers{createHeaderMap<ResponseHeaderMapImpl>(headers)};
+      ResponseHeaderMapPtr response_headers = createHeaderMap<ResponseHeaderMapImpl>(
+        {{Http::Headers::get().Status, "200"},
+        {FidTimestamp, std::to_string(long(engine_.get_timestamp_from_id(id).second))}});
 
       decoder_callbacks_->encodeHeaders(std::move(response_headers), true);
       return FilterHeadersStatus::StopIteration;
