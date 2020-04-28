@@ -55,10 +55,17 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     }
     return FilterHeadersStatus::Continue;
   } else if (headers.get(Method)->value() == "POST") {
-    std::string timestamp = std::string(headers.get(FidTimestamp)->value().getStringView());
+    ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders1: {}", *decoder_callbacks_, headers);
+    ENVOY_LOG(info, "The decodeHeaders returned");
+    std::string timestamp = std::string(headers.get(FidTimestamp2)->value().getStringView());
+    ENVOY_LOG(info, "The decodeHeaders returned");
     std::string url = std::string(headers.get(URLPath)->value().getStringView());
+    ENVOY_LOG(info, "The decodeHeaders returned");
     // store id, timestamp for the file.
+    ENVOY_LOG(info, "The decodeHeaders returned");
     this->engine_.set_id_with_timestamp(url, timestamp);
+    ENVOY_LOG(info, "The decodeHeaders returned");
+    ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders1: {}", *decoder_callbacks_, headers);
     return FilterHeadersStatus::Continue;
   }
 
@@ -75,6 +82,7 @@ FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&)
 
 Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap& headers, bool){
   if(id_ != ""){
+      ENVOY_LOG(info, "Fuck Uber");
       headers.addCopy(FidTimestamp2, engine_.get_timestamp_from_id(id_).second);
       headers.setCopy(FidTimestamp2, engine_.get_timestamp_from_id(id_).second);
   }
