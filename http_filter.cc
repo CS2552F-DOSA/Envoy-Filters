@@ -17,6 +17,7 @@ namespace Http {
 static LowerCaseString Method{":method"};
 static LowerCaseString URLPath{":path"};
 static LowerCaseString FidTimestamp{":fid_timestamp_unix_ns"};
+static LowerCaseString FidTimestamp2{"fid_timestamp_unix_ns"};
 
 DosaConfig::DosaConfig(const dosa::Dosa& proto_config, Upstream::ClusterManager& cm):
   cm_(cm), cluster_(proto_config.cluster()) {}
@@ -49,8 +50,8 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
       ResponseHeaderMapPtr response_headers = createHeaderMap<ResponseHeaderMapImpl>(
         {{Http::Headers::get().Status, "200"}});
       
-      response_headers->addCopy(FidTimestamp, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
-      response_headers->setCopy(FidTimestamp, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
+      response_headers->addCopy(FidTimestamp2, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
+      response_headers->setCopy(FidTimestamp2, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
 
       decoder_callbacks_->encodeHeaders(std::move(response_headers), true);
       return FilterHeadersStatus::StopIteration;
