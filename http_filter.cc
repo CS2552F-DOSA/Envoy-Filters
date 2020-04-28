@@ -4,10 +4,12 @@
 
 #include "chrono"
 #include "envoy/server/filter_config.h"
+#include "common/http/header_map_impl.h"
 
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/str_split.h"
+
 
 namespace Envoy {
 namespace Http {
@@ -43,11 +45,11 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
       // This is a ping request from envoy filter
       int pos = id.find("/", 2);
       id = id.substr(pos+1);
-
       headers.addCopy(FidTimestamp, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
       headers.setCopy(FidTimestamp, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
 
-      Http::HeaderMapPtr response_headers{new HeaderMapImpl(headers)};
+      ResponseHeaderMapPtr response_headers{createHeaderMap<ResponseHeaderMapImpl>(headers)};
+
       decoder_callbacks_->encodeHeaders(std::move(response_headers), true);
       return FilterHeadersStatus::StopIteration;
     }
