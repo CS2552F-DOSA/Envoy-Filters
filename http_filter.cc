@@ -14,7 +14,7 @@ namespace Envoy {
 namespace Http {
 
 static LowerCaseString FidTimestamp{":fid_timestamp_unix_ns"};
-static LowerCaseString FidTimestamp2{":fid_timestamp_unix_ns"};
+static LowerCaseString FidTimestamp2{"fid_timestamp_unix_ns"};
 static LowerCaseString Method{":method"};
 static LowerCaseString URLPath{":path"};
 static LowerCaseString Host{":authority"};
