@@ -4,6 +4,8 @@
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from optparse import OptionParser
 
+import sys
+
 count = 1
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -19,7 +21,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         
         self.send_response(200)
         count += 1
-        self.send_header("Set-Cookie", str(count))
+        self.send_header("fid_timestamp_unix_ns", str(count))
+        self.end_headers()
         
     def do_POST(self):
         
@@ -42,7 +45,7 @@ class RequestHandler(BaseHTTPRequestHandler):
     do_DELETE = do_GET
         
 def main():
-    port = 8888
+    port = int(sys.argv[1])
     print('Listening on localhost:%s' % port)
     server = HTTPServer(('', port), RequestHandler)
     server.serve_forever()

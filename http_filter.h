@@ -35,6 +35,8 @@ public:
   DosaConfig(const dosa::Dosa& proto_config, Upstream::ClusterManager& cm);
   Upstream::ClusterManager& cm_;
   std::string cluster_;
+  std::string test_cluster_;
+  std::string prod_cluster_;
 };
 
 typedef std::shared_ptr<const DosaConfig> DosaConfigConstSharedPtr;

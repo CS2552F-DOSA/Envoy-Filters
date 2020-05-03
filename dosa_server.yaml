@@ -7,18 +7,30 @@ admin:
       port_value: 9901
 static_resources:
   clusters:
-    name: cluster_0
-    connect_timeout: 0.25s
-    type: logical_dns
-    load_assignment:
-      cluster_name: cluster_0
-      endpoints:
-        - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: 127.0.0.1
-                    port_value: 8888
+    - name: cluster_0
+      connect_timeout: 0.25s
+      type: logical_dns
+      load_assignment:
+        cluster_name: cluster_0
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 8888
+    - name: cluster_1
+      connect_timeout: 0.25s
+      type: logical_dns
+      load_assignment:
+        cluster_name: cluster_1
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 8889
   listeners:
     name: listener_0
     address:
@@ -41,7 +53,8 @@ static_resources:
               - match: { prefix: "/" }
                 route: { cluster: cluster_0 }
           http_filters:
-            # - name: dosa
-            #   config:
-            #     cluster: cluster_0
+            - name: dosa
+              config:
+                cluster: cluster_0
+                prod_cluster: cluster_1
             - name: envoy.filters.http.router
