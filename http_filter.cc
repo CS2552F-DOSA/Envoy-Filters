@@ -116,7 +116,7 @@ FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&)
 }
 
 Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap& headers, bool){
-  ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, headers);s
+  ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, headers);
   return FilterHeadersStatus::Continue;
 }
 
