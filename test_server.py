@@ -25,7 +25,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         
     def do_POST(self):
-        
+        global count
         request_path = self.path
         
         print("\n----- Request Start ----->\n")
@@ -40,6 +40,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         print("<----- Request End -----\n")
         
         self.send_response(200)
+        count += 1
+        self.send_header("fid_timestamp_unix_ns", str(count))
+        self.end_headers()
     
     do_PUT = do_POST
     do_DELETE = do_GET

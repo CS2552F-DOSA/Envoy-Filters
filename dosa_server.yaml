@@ -50,6 +50,8 @@ static_resources:
             - name: local_service
               domains: ["*"]
               routes:
+              - match: { prefix: "/1" }
+                route: { cluster: cluster_1 }
               - match: { prefix: "/" }
                 route: { cluster: cluster_0 }
           http_filters:

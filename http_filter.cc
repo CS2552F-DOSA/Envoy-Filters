@@ -71,7 +71,13 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     && FilterState::GetDupSent == filter_state_){
 
     headers.setHost(cluster_);
-    // TODO: modify the url
+    // Modify the url
+    if(cluster_ == config_->cluster_){
+      // If we need to send to test
+      // NOTE: Hard code
+      std::string oldURL = std::string(headers.get(URLPath)->value().getStringView());
+      headers.setPath(std::string("/1") + oldURL);
+    }
     return FilterHeadersStatus::Continue;
 
   }else if(headers.get(Method)->value() == "POST"
@@ -98,8 +104,9 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     // use time stamp information and Send the write
     headers.addCopy(FidTimestamp2, test_reponse_time_);
     headers.setCopy(FidTimestamp2, test_reponse_time_);
-    // TODO: modify the url
-    headers.setHost(config_->cluster_);
+    // NOTE: Hard code
+    std::string oldURL = std::string(headers.get(URLPath)->value().getStringView());
+    headers.setPath(std::string("/1") + oldURL);
 
     return FilterHeadersStatus::Continue;
 
@@ -162,6 +169,7 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
       }
   } else if(filter_type_ == FilterType::Post
     && filter_state_ == FilterState::PostSent){
+      
       test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
       decoder_callbacks_->continueDecoding();
   }
