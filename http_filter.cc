@@ -170,7 +170,7 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
         }
         decoder_callbacks_->continueDecoding();
       }
-  } else if(filter_type_ == FilterType::Get
+  } else if(filter_type_ == FilterType::Post
     && filter_state_ == FilterState::PostSent){
       test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
       decoder_callbacks_->continueDecoding();
