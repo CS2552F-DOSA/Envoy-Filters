@@ -48,7 +48,7 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     RequestMessagePtr request1(new RequestMessageImpl(
       createHeaderMap<RequestHeaderMapImpl>(headers)));
     std::string oldURL = std::string(headers.get(URLPath)->value().getStringView());
-    request1->headers().setPath(std::string("/ping") + oldURL);
+    request1->headers().setPath(std::string("/1/ping") + oldURL);
     request1->headers().setHost(config_->cluster_);
     test_request_ =
         config_->cm_.httpAsyncClientForCluster(config_->cluster_)
