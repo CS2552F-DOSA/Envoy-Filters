@@ -18,7 +18,7 @@ static LowerCaseString Method{":method"};
 static LowerCaseString URLPath{":path"};
 static LowerCaseString FidTimestamp{":fid_timestamp_unix_ns"};
 static LowerCaseString FidTimestamp2{"fid_timestamp_unix_ns"};
-static LowerCaseString Host{":authority"};
+static LowerCaseString CL{"cluster"};
 
 DosaConfig::DosaConfig(const dosa::Dosa& proto_config, Upstream::ClusterManager& cm):
   cm_(cm), cluster_(proto_config.cluster()) {}
@@ -51,8 +51,8 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
       response_headers->addCopy(FidTimestamp2, engine_.get_timestamp_from_id(id_).second);
       response_headers->setCopy(FidTimestamp2, engine_.get_timestamp_from_id(id_).second);
 
-      response_headers->addCopy(Host, "cluster_1");
-      response_headers->setCopy(Host, "cluster_1");
+      response_headers->addCopy(CL, "cluster_1");
+      response_headers->setCopy(CL, "cluster_1");
 
       decoder_callbacks_->encodeHeaders(std::move(response_headers), true);
       return FilterHeadersStatus::StopIteration;
