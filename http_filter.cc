@@ -89,6 +89,7 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     RequestMessagePtr request(new RequestMessageImpl(
       createHeaderMap<RequestHeaderMapImpl>(headers)));
     std::string oldURL = std::string(headers.get(URLPath)->value().getStringView());
+    request->headers().setMethod(Http::Headers::get().MethodValues.Get);
     request->headers().setPath(std::string("/ping") + oldURL);
     request->headers().setHost(config_->prod_cluster_);
     test_request_ =
@@ -170,6 +171,8 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
       }
   } else if(filter_type_ == FilterType::Post
     && filter_state_ == FilterState::PostSent){
+
+      ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
       
       test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
       decoder_callbacks_->continueDecoding();
