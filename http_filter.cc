@@ -163,6 +163,7 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
         // compare the time
         std::string new_reponse_time = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
         if(std::stol(test_reponse_time_) <= std::stol(new_reponse_time)){
+          // cluster_ = std::string(request->cluster_->name());
           cluster_ = std::string(response->headers().get(Host)->value().getStringView());
         }
         decoder_callbacks_->continueDecoding();
