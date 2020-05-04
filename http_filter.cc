@@ -17,7 +17,7 @@ static LowerCaseString FidTimestamp{":fid_timestamp_unix_ns"};
 static LowerCaseString FidTimestamp2{"fid_timestamp_unix_ns"};
 static LowerCaseString Method{":method"};
 static LowerCaseString URLPath{":path"};
-static LowerCaseString Host{":authority"};
+static LowerCaseString CL{"cluster"};
 
 // DosaConfig::DosaConfig(const dosa::Dosa& proto_config, Upstream::ClusterManager& cm):
 //   cm_(cm), cluster_(proto_config.test_cluster()), cluster_(proto_config.prod_cluster()) {}
@@ -158,13 +158,13 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
     && filter_state_ == FilterState::GetDupSent){
       if(test_reponse_time_ == ""){
         test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
-        cluster_ = std::string(response->headers().get(Host)->value().getStringView());
+        cluster_ = std::string(response->headers().get(CL)->value().getStringView());
       } else {
         // compare the time
         std::string new_reponse_time = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
         if(std::stol(test_reponse_time_) <= std::stol(new_reponse_time)){
           // cluster_ = std::string(request->cluster_->name());
-          cluster_ = std::string(response->headers().get(Host)->value().getStringView());
+          cluster_ = std::string(response->headers().get(CL)->value().getStringView());
         }
         decoder_callbacks_->continueDecoding();
       }
