@@ -16,6 +16,7 @@ namespace Http {
 
 static LowerCaseString Method{":method"};
 static LowerCaseString URLPath{":path"};
+static LowerCaseString Host{":authority"};
 static LowerCaseString FidTimestamp{":fid_timestamp_unix_ns"};
 static LowerCaseString FidTimestamp2{"fid_timestamp_unix_ns"};
 
@@ -51,6 +52,10 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
       
       response_headers->addCopy(FidTimestamp2, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
       response_headers->setCopy(FidTimestamp2, (std::to_string(long(engine_.get_timestamp_from_id(id).second))));
+
+      // NOTE: hard code
+      response_headers->addCopy(Host, "cluster_0");
+      response_headers->setCopy(Host, "cluster_0");
 
       decoder_callbacks_->encodeHeaders(std::move(response_headers), true);
       return FilterHeadersStatus::StopIteration;
