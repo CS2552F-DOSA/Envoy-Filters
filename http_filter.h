@@ -80,11 +80,6 @@ private:
   std::condition_variable cv_;
   FilterState filter_state_;
   FilterType filter_type_;
-  // bool decodeCacheCheck_ = false;
-  // bool decodeDoNotChange_ = true;
-
-  // HeaderMap* copiedHeaders{};
-  // HeaderMap* copiedTrailers;
 
   StreamDecoderFilterCallbacks* decoder_callbacks_{};
   StreamEncoderFilterCallbacks* encoder_callbacks_{};
@@ -93,6 +88,22 @@ private:
   std::string test_response_body_;
   std::string test_reponse_time_;
   std::string cluster_;
+};
+
+class Tmp : Logger::Loggable<Logger::Id::filter>,
+            public AsyncClient::Callbacks{
+public:
+  Tmp(){};
+  ~Tmp(){};
+  // Http::AsyncClient::Callbacks
+  void onSuccess(const AsyncClient::Request&, ResponseMessagePtr&&) override{
+    ENVOY_LOG(info, "onSuccess was invoked");
+    return;
+  };
+  void onFailure(const AsyncClient::Request&, AsyncClient::FailureReason) override{
+    ENVOY_LOG(info, "onSuccess was invoked");
+    return;
+  };
 };
 
 } // namespace Http
