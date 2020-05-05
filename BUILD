@@ -29,6 +29,7 @@ envoy_cc_library(
         "@envoy//source/exe:envoy_common_lib",
         "@envoy//source/common/common:empty_string",
         "@envoy//source/common/http:message_lib",
+        "@envoy//source/common/buffer:buffer_lib",
     ],
 )
 

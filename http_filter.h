@@ -13,18 +13,44 @@ namespace Envoy {
 namespace Http {
 
 enum FilterType { Get, Post };
-enum FilterState { Null, GetDupSent, GetDupRecv, GetDupWait, PostSent, PostDupRecv };
+enum FilterState { Null, GetDupSent, PostSent, GetCompass, PostCacheUpdate };
 
 class DosaEngine {
 public:
   DosaEngine(){};
   ~DosaEngine(){};
 
-  int getCount() {
-    return count_ ++;
+  // Set file id and its "prod envoy" timestamp.
+  void set_id_with_timestamp(std::string& id, const int64_t timestamp) {
+    this->id_to_timestamp_[id] = timestamp;
   }
+
+  void set_id_with_cache(std::string& id, const std::string file) {
+    this->id_to_cache_[id] = file;
+  }
+
+  // Return the pair for the id. If the id is in this->id_to_timestamp_, then return the <true, timestamp>, if not return <false, 0>.
+  std::pair<bool, int64_t> get_timestamp_from_id(std::string& id) {
+    if (this->id_to_timestamp_.find(id) != this->id_to_timestamp_.end()) {
+      return std::make_pair(true, this->id_to_timestamp_[id]);
+    } else {
+      return std::make_pair(false, 0);
+    }
+  }
+
+  // Return the pair for the id. If the id is in this->id_to_timestamp_, then return the <true, timestamp>, if not return <false, 0>.
+  std::pair<bool, std::string> get_cache_from_id(std::string& id) {
+    if (this->id_to_cache_.find(id) != this->id_to_cache_.end()) {
+      return std::make_pair(true, this->id_to_cache_[id]);
+    } else {
+      return std::make_pair(false, "");
+    }
+  }
+
 private:
-  int count_ = 0;
+  // Map for maintaining id -> timestamp.
+  std::unordered_map<std::string, int64_t> id_to_timestamp_;
+  std::unordered_map<std::string, std::string> id_to_cache_;
 };
 
 /**
@@ -76,20 +102,14 @@ private:
   int count_ = 0;
 
   // Filter state Set
-  std::mutex mtx_;
-  std::condition_variable cv_;
   FilterState filter_state_;
   FilterType filter_type_;
-  // bool decodeCacheCheck_ = false;
-  // bool decodeDoNotChange_ = true;
-
-  // HeaderMap* copiedHeaders{};
-  // HeaderMap* copiedTrailers;
 
   StreamDecoderFilterCallbacks* decoder_callbacks_{};
   StreamEncoderFilterCallbacks* encoder_callbacks_{};
 
   Http::AsyncClient::Request* test_request_{};
+  std::string url_;
   std::string test_response_body_;
   std::string test_reponse_time_;
   std::string cluster_;
