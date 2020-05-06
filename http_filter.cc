@@ -17,6 +17,7 @@ static LowerCaseString FidTimestamp{":fid_timestamp_unix_ns"};
 static LowerCaseString FidTimestamp2{"fid_timestamp_unix_ns"};
 static LowerCaseString Method{":method"};
 static LowerCaseString URLPath{":path"};
+static LowerCaseString Status{":status"};
 static LowerCaseString CL{"cluster"};
 
 // DosaConfig::DosaConfig(const dosa::Dosa& proto_config, Upstream::ClusterManager& cm):
@@ -48,7 +49,7 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     RequestMessagePtr request1(new RequestMessageImpl(
       createHeaderMap<RequestHeaderMapImpl>(headers)));
     url_ = std::string(headers.get(URLPath)->value().getStringView());
-    request1->headers().setPath(std::string("/1/ping") + url_);
+    request1->headers().setPath(std::string("/ping") + url_);
     request1->headers().setHost(config_->cluster_);
     test_request_ =
         config_->cm_.httpAsyncClientForCluster(config_->cluster_)
@@ -89,21 +90,20 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     // headers.setCopy(FidTimestamp2, test_reponse_time_);
     // // NOTE: Hard code
     // // std::string oldURL = std::string(headers.get(URLPath)->value().getStringView());
-    // headers.setPath(std::string("/1") + oldURL);
+    headers.setPath(std::string("/1"));
 
-    return FilterHeadersStatus::Continue;
+    return FilterHeadersStatus::StopIteration;
   }
 
   return FilterHeadersStatus::StopIteration;
 }
 
 FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance& data, bool) {
-  if(filter_type_ == FilterType::Post
-    && FilterState::Null == filter_state_){
-      request_body_ = data.toString();
-      return FilterDataStatus::StopIterationNoBuffer;
-    }
-  return FilterDataStatus::Continue;
+  std::string tmp = data.toString();
+  if(tmp.size()){
+    request_body_ = tmp;
+  }
+  return FilterDataStatus::StopIterationAndBuffer;
 }
 
 FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&){
@@ -112,11 +112,20 @@ FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&)
 
 Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap& headers, bool){
   ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, headers);
-  return FilterHeadersStatus::Continue;
+  ENVOY_LOG(info, "databricks");
+  if(flag_){
+    ENVOY_LOG(info, "databricks");
+    return FilterHeadersStatus::Continue;
+  }
+  return FilterHeadersStatus::StopIteration;
 }
 
-Http::FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance&, bool){
-  ENVOY_LOG(info, "The encode data called");
+Http::FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance& data, bool){
+  ENVOY_LOG(info, "The encode data called" + data.toString());
+  if(!flag_){
+    ENVOY_LOG(info, "databricks");
+    return FilterDataStatus::StopIterationAndBuffer;
+  }
   return FilterDataStatus::Continue;
 }
 
@@ -141,7 +150,6 @@ void HttpSampleDecoderFilter::setEncoderFilterCallbacks(StreamEncoderFilterCallb
 }
 
 void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMessagePtr&& response){
-  ENVOY_LOG(info, "onSuccess was invoked");
   if(filter_type_ == FilterType::Get
     && filter_state_ == FilterState::Null){
 
@@ -161,7 +169,7 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
 
       RequestMessagePtr message(new RequestMessageImpl());
       if(cluster_ == config_->cluster_)
-        message->headers().setPath(std::string("/1") + url_);
+        message->headers().setPath(url_);
       else
         message->headers().setPath(url_);
       message->headers().setHost(cluster_);
@@ -180,11 +188,14 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
       filter_state_ = FilterState::PostSent;
 
       RequestMessagePtr message(new RequestMessageImpl());
-      message->headers().setPath(std::string("/1") + url_);
+      message->headers().setPath(url_);
       message->headers().setHost(config_->cluster_);
       message->headers().setMethod(Headers::get().MethodValues.Post);
+      message->headers().setContentType(std::string("application/json"));
+      message->headers().setContentLength(request_body_.size());
       message->headers().addCopy(FidTimestamp2, test_reponse_time_);
       message->headers().setCopy(FidTimestamp2, test_reponse_time_);
+      message->body() = Buffer::InstancePtr(new Buffer::OwnedImpl(request_body_));
       test_request_ =
           config_->cm_.httpAsyncClientForCluster(config_->cluster_)
               .send(std::move(message), *this,
@@ -194,6 +205,7 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
     std::string response_body(response->bodyAsString());
     // Http::HeaderMapPtr response_headers{new HeaderMapImpl(response->headers())};
     ResponseHeaderMapPtr headers(Http::createHeaderMap<Http::ResponseHeaderMapImpl>(response->headers()));
+    flag_ = true;
     decoder_callbacks_->encodeHeaders(std::move(headers), response_body.empty());
     if (!response_body.empty()) {
       Buffer::OwnedImpl buffer(response_body);
@@ -201,12 +213,13 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
     }
     return;
   } else if(filter_state_ == FilterState::PostSent){
-    ENVOY_LOG(info, "databricks");
-
     std::string response_body(response->bodyAsString());
+    ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, response->headers());
+    ENVOY_LOG(info, "databricks" + response_body);
     // Http::HeaderMapPtr response_headers{new HeaderMapImpl(response->headers())};
     ResponseHeaderMapPtr headers(Http::createHeaderMap<Http::ResponseHeaderMapImpl>(response->headers()));
-    decoder_callbacks_->encodeHeaders(std::move(headers), response_body.empty());
+    flag_ = true;
+    decoder_callbacks_->encodeHeaders(std::move(headers), false);
     if (!response_body.empty()) {
       Buffer::OwnedImpl buffer(response_body);
       decoder_callbacks_->encodeData(buffer, true);

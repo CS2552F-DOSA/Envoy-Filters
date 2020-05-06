@@ -90,6 +90,7 @@ private:
   std::string test_reponse_time_;
   std::string cluster_;
   std::string url_;
+  bool flag_ = false;
 };
 
 } // namespace Http
