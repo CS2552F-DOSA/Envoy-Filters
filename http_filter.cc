@@ -40,10 +40,11 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
   if (headers.get(Method)->value() == "GET") {
     std::string url = std::string(headers.get(URLPath)->value().getStringView());
     id_ = url;
-    if(id_[4] == 'i'){
+    if(id_[2] == 'i'){
+      // /ping
       // This is a ping request from envoy filter
-      int pos = id_.find("/", 3);
-      id_ = "/1" + id_.substr(pos);
+      int pos = id_.find("/", 2);
+      id_ = id_.substr(pos);
 
       ResponseHeaderMapPtr response_headers = createHeaderMap<ResponseHeaderMapImpl>(
         {{Http::Headers::get().Status, "200"}});
