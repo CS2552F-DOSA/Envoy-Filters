@@ -44,52 +44,26 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     filter_type_ = FilterType::Get;
     // filter_state_ = FilterState::GetDupSent;
 
-    auto t = Tmp();
-
     ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, count_);
     RequestMessagePtr request1(new RequestMessageImpl(
       createHeaderMap<RequestHeaderMapImpl>(headers)));
-    std::string oldURL = std::string(headers.get(URLPath)->value().getStringView());
-    request1->headers().setPath(std::string("/1/ping") + oldURL);
+    url_ = std::string(headers.get(URLPath)->value().getStringView());
+    request1->headers().setPath(std::string("/1/ping") + url_);
     request1->headers().setHost(config_->cluster_);
-    // test_request_ =
-    //     config_->cm_.httpAsyncClientForCluster(config_->cluster_)
-    //         .send(std::move(request1), *this,
-    //         AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
     test_request_ =
         config_->cm_.httpAsyncClientForCluster(config_->cluster_)
-            .send(std::move(request1), t,
+            .send(std::move(request1), *this,
             AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
 
     RequestMessagePtr request2(new RequestMessageImpl(
       createHeaderMap<RequestHeaderMapImpl>(headers)));
-    request2->headers().setPath(std::string("/ping") + oldURL);
+    request2->headers().setPath(std::string("/ping") + url_);
     request2->headers().setHost(config_->prod_cluster_);
     // request2->headers().setHost(std::string(headers.get(Host)->value().getStringView())); // cluster name is Host: header value!
-    // test_request_ =
-    //     config_->cm_.httpAsyncClientForCluster(config_->prod_cluster_)
-    //         .send(std::move(request2), *this,
-    //         AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
     test_request_ =
         config_->cm_.httpAsyncClientForCluster(config_->prod_cluster_)
-            .send(std::move(request2), t,
+            .send(std::move(request2), *this,
             AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
-
-    // {
-    //   std::unique_lock<std::mutex> lk(mtx_);
-    //   while(filter_state_ == FilterState::Null){
-    //     cv_.wait(lk);
-    //   }
-    // }
-
-    headers.setHost(cluster_);
-    // Modify the url
-    if(cluster_ == config_->cluster_){
-      // If we need to send to test
-      // NOTE: Hard code
-      //  = std::string(headers.get(URLPath)->value().getStringView());
-      headers.setPath(std::string("/1") + oldURL);
-    }
 
     return FilterHeadersStatus::StopIteration;
     
@@ -101,36 +75,34 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
 
     RequestMessagePtr request(new RequestMessageImpl(
       createHeaderMap<RequestHeaderMapImpl>(headers)));
-    std::string oldURL = std::string(headers.get(URLPath)->value().getStringView());
+    url_ = std::string(headers.get(URLPath)->value().getStringView());
     request->headers().setMethod(Http::Headers::get().MethodValues.Get);
-    request->headers().setPath(std::string("/ping") + oldURL);
+    request->headers().setPath(std::string("/ping") + url_);
     request->headers().setHost(config_->prod_cluster_);
     test_request_ =
         config_->cm_.httpAsyncClientForCluster(config_->prod_cluster_)
             .send(std::move(request), *this,
             AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
-    
-    {
-      std::unique_lock<std::mutex> lk(mtx_);
-      while(filter_state_ == FilterState::Null){
-        cv_.wait(lk);
-      }
-    }
 
-    // use time stamp information and Send the write
-    headers.addCopy(FidTimestamp2, test_reponse_time_);
-    headers.setCopy(FidTimestamp2, test_reponse_time_);
-    // NOTE: Hard code
-    // std::string oldURL = std::string(headers.get(URLPath)->value().getStringView());
-    headers.setPath(std::string("/1") + oldURL);
+    // // use time stamp information and Send the write
+    // headers.addCopy(FidTimestamp2, test_reponse_time_);
+    // headers.setCopy(FidTimestamp2, test_reponse_time_);
+    // // NOTE: Hard code
+    // // std::string oldURL = std::string(headers.get(URLPath)->value().getStringView());
+    // headers.setPath(std::string("/1") + oldURL);
 
     return FilterHeadersStatus::Continue;
   }
 
-  return FilterHeadersStatus::Continue;
+  return FilterHeadersStatus::StopIteration;
 }
 
-FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance&, bool) {
+FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance& data, bool) {
+  if(filter_type_ == FilterType::Post
+    && FilterState::Null == filter_state_){
+      request_body_ = data.toString();
+      return FilterDataStatus::StopIterationNoBuffer;
+    }
   return FilterDataStatus::Continue;
 }
 
@@ -170,7 +142,9 @@ void HttpSampleDecoderFilter::setEncoderFilterCallbacks(StreamEncoderFilterCallb
 
 void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMessagePtr&& response){
   ENVOY_LOG(info, "onSuccess was invoked");
-  if(filter_type_ == FilterType::Get){
+  if(filter_type_ == FilterType::Get
+    && filter_state_ == FilterState::Null){
+
     if(test_reponse_time_ == ""){
       test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
       cluster_ = std::string(response->headers().get(CL)->value().getStringView());
@@ -185,26 +159,66 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
       }
       filter_state_ = FilterState::GetDupSent;
 
-      ENVOY_LOG(info, "databricks");
-      std::unique_lock<std::mutex> lk(mtx_);
-      // Manual unlocking is done before notifying, to avoid waking up
-      // the waiting thread only to block again (see notify_one for details)
-      lk.unlock();
-      cv_.notify_one();
-      ENVOY_LOG(info, "databricks");
+      RequestMessagePtr message(new RequestMessageImpl());
+      if(cluster_ == config_->cluster_)
+        message->headers().setPath(std::string("/1") + url_);
+      else
+        message->headers().setPath(url_);
+      message->headers().setHost(cluster_);
+      message->headers().setMethod(Headers::get().MethodValues.Get);
+      test_request_ =
+          config_->cm_.httpAsyncClientForCluster(cluster_)
+              .send(std::move(message), *this,
+              AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
     }
-  } else if(filter_type_ == FilterType::Post){
+  } else if(filter_type_ == FilterType::Post
+      && filter_state_ == FilterState::Null){
 
       ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
       
       test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
       filter_state_ = FilterState::PostSent;
-      // decoder_callbacks_->continueDecoding();
-      std::unique_lock<std::mutex> lk(mtx_);
-      // Manual unlocking is done before notifying, to avoid waking up
-      // the waiting thread only to block again (see notify_one for details)
-      lk.unlock();
-      cv_.notify_one();
+
+      RequestMessagePtr message(new RequestMessageImpl());
+      message->headers().setPath(std::string("/1") + url_);
+      message->headers().setHost(config_->cluster_);
+      message->headers().setMethod(Headers::get().MethodValues.Post);
+      message->headers().addCopy(FidTimestamp2, test_reponse_time_);
+      message->headers().setCopy(FidTimestamp2, test_reponse_time_);
+      test_request_ =
+          config_->cm_.httpAsyncClientForCluster(config_->cluster_)
+              .send(std::move(message), *this,
+              AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
+
+  } else if(filter_state_ == FilterState::GetDupSent){
+    std::string response_body(response->bodyAsString());
+    // Http::HeaderMapPtr response_headers{new HeaderMapImpl(response->headers())};
+    ResponseHeaderMapPtr headers(Http::createHeaderMap<Http::ResponseHeaderMapImpl>(response->headers()));
+    decoder_callbacks_->encodeHeaders(std::move(headers), response_body.empty());
+    if (!response_body.empty()) {
+      Buffer::OwnedImpl buffer(response_body);
+      decoder_callbacks_->encodeData(buffer, true);
+    }
+    return;
+  } else if(filter_state_ == FilterState::PostSent){
+    ENVOY_LOG(info, "databricks");
+
+    std::string response_body(response->bodyAsString());
+    // Http::HeaderMapPtr response_headers{new HeaderMapImpl(response->headers())};
+    ResponseHeaderMapPtr headers(Http::createHeaderMap<Http::ResponseHeaderMapImpl>(response->headers()));
+    decoder_callbacks_->encodeHeaders(std::move(headers), response_body.empty());
+    if (!response_body.empty()) {
+      Buffer::OwnedImpl buffer(response_body);
+      decoder_callbacks_->encodeData(buffer, true);
+    }
+    return;
+
+    // // use time stamp information and Send the write
+    // headers.addCopy(FidTimestamp2, test_reponse_time_);
+    // headers.setCopy(FidTimestamp2, test_reponse_time_);
+    // // NOTE: Hard code
+    // // std::string oldURL = std::string(headers.get(URLPath)->value().getStringView());
+    // headers.setPath(std::string("/1") + oldURL);
   }
 
   ENVOY_LOG(info, "onSuccess returned");

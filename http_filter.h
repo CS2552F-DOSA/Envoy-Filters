@@ -85,25 +85,11 @@ private:
   StreamEncoderFilterCallbacks* encoder_callbacks_{};
 
   Http::AsyncClient::Request* test_request_{};
+  std::string request_body_;
   std::string test_response_body_;
   std::string test_reponse_time_;
   std::string cluster_;
-};
-
-class Tmp : Logger::Loggable<Logger::Id::filter>,
-            public AsyncClient::Callbacks{
-public:
-  Tmp(){};
-  ~Tmp(){};
-  // Http::AsyncClient::Callbacks
-  void onSuccess(const AsyncClient::Request&, ResponseMessagePtr&&) override{
-    ENVOY_LOG(info, "onSuccess was invoked");
-    return;
-  };
-  void onFailure(const AsyncClient::Request&, AsyncClient::FailureReason) override{
-    ENVOY_LOG(info, "onSuccess was invoked");
-    return;
-  };
+  std::string url_;
 };
 
 } // namespace Http
