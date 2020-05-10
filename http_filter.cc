@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <mutex>
 #include <condition_variable> // std::condition_variable
+#include <google/vcdecoder.h>  // Read this file for interface details
+#include <google/vcencoder.h>  // Read this file for interface details
 
 #include "envoy/server/filter_config.h"
 #include "common/http/message_impl.h"
@@ -39,16 +41,41 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
   
   if(headers.get(Method)->value() == "GET"
     && FilterState::Null == filter_state_){
-    // We have a init get request, will send two ping requests
+    // // We have a init get request, will send two ping requests
+    // filter_type_ = FilterType::Get;
+    // filter_state_ = FilterState::GetDupSent;
+
+    // ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, count_);
+    // RequestMessagePtr request1(new RequestMessageImpl(
+    //   createHeaderMap<RequestHeaderMapImpl>(headers)));
+    // url_ = std::string(headers.get(URLPath)->value().getStringView());
+    // request1->headers().setPath(std::string("/1/ping") + url_);
+    // request1->headers().setHost(config_->cluster_); // cluster name is Host: header value!
+    // test_request_ =
+    //     config_->cm_.httpAsyncClientForCluster(config_->cluster_)
+    //         .send(std::move(request1), *this,
+    //         AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
+
+    // RequestMessagePtr request2(new RequestMessageImpl(
+    //   createHeaderMap<RequestHeaderMapImpl>(headers)));
+    // request2->headers().setPath(std::string("/ping") + url_);
+    // request2->headers().setHost(config_->prod_cluster_);
+    // test_request_ =
+    //     config_->cm_.httpAsyncClientForCluster(config_->prod_cluster_)
+    //         .send(std::move(request2), *this,
+    //         AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
+    // return FilterHeadersStatus::StopIteration;
+    // // return FilterHeadersStatus::StopAllIterationAndBuffer;
+        // We have a init get request, will send two ping requests
     filter_type_ = FilterType::Get;
-    filter_state_ = FilterState::GetDupSent;
+    // filter_state_ = FilterState::GetDupSent;
 
     ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, count_);
     RequestMessagePtr request1(new RequestMessageImpl(
       createHeaderMap<RequestHeaderMapImpl>(headers)));
     url_ = std::string(headers.get(URLPath)->value().getStringView());
-    request1->headers().setPath(std::string("/1/ping") + url_);
-    request1->headers().setHost(config_->cluster_); // cluster name is Host: header value!
+    request1->headers().setPath(std::string("/ping") + url_);
+    request1->headers().setHost(config_->cluster_);
     test_request_ =
         config_->cm_.httpAsyncClientForCluster(config_->cluster_)
             .send(std::move(request1), *this,
@@ -58,16 +85,16 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
       createHeaderMap<RequestHeaderMapImpl>(headers)));
     request2->headers().setPath(std::string("/ping") + url_);
     request2->headers().setHost(config_->prod_cluster_);
+    // request2->headers().setHost(std::string(headers.get(Host)->value().getStringView())); // cluster name is Host: header value!
     test_request_ =
         config_->cm_.httpAsyncClientForCluster(config_->prod_cluster_)
             .send(std::move(request2), *this,
             AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
+
     return FilterHeadersStatus::StopIteration;
-    // return FilterHeadersStatus::StopAllIterationAndBuffer;
     
   } else if(headers.get(Method)->value() == "GET"
     && FilterState::GetDupSent == filter_state_){
-    // TODO: add the fast cache return
     headers.setHost(cluster_);
     ENVOY_LOG(info, "databricks");
     // Modify the url
@@ -99,6 +126,7 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
             AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
 
     return FilterHeadersStatus::StopAllIterationAndBuffer;
+
   } else if (headers.get(Method)->value() == "POST"
     && (FilterState::PostSent == filter_state_ || FilterState::PostCacheUpdate == filter_state_)){
 ENVOY_LOG(info, "databricks");
@@ -135,17 +163,22 @@ ENVOY_LOG(info, "databricks");
 }
 
 FilterDataStatus HttpSampleDecoderFilter::decodeData(Buffer::Instance& data, bool) {
-  if(FilterState::PostSent == filter_state_ 
-    && filter_type_ == FilterType::Post){
-    ENVOY_LOG(info, "databricks");
-    // TODO: compass
-    std::string whole = data.toString();
-    auto _tmp = engine_.get_cache_from_id(url_);
-    std::string delta = _tmp.second + whole;
-    data.drain(data.length());
-    data.add(delta);
+  // if(FilterState::PostSent == filter_state_ 
+  //   && filter_type_ == FilterType::Post){
+  //   ENVOY_LOG(info, "databricks");
+  //   // compass
+  //   std::string whole = data.toString();
+  //   auto _tmp = engine_.get_cache_from_id(url_);
+  //   std::string delta = _tmp.second + whole;
+  //   data.drain(data.length());
+  //   data.add(delta);
+  // }
+  // return FilterDataStatus::Continue;
+  std::string tmp = data.toString();
+  if(tmp.size()){
+    request_body_ = tmp;
   }
-  return FilterDataStatus::Continue;
+  return FilterDataStatus::StopIterationAndBuffer;
 }
 
 FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&){
@@ -153,28 +186,40 @@ FilterTrailersStatus HttpSampleDecoderFilter::decodeTrailers(RequestTrailerMap&)
   return FilterTrailersStatus::Continue;
 }
 
-Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap&, bool){
-  return FilterHeadersStatus::Continue;
+Http::FilterHeadersStatus HttpSampleDecoderFilter::encodeHeaders(ResponseHeaderMap& headers, bool){
+  ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, headers);
+  ENVOY_LOG(info, "databricks");
+  if(flag_){
+    ENVOY_LOG(info, "databricks");
+    return FilterHeadersStatus::Continue;
+  }
+  return FilterHeadersStatus::StopIteration;
 }
 
 Http::FilterDataStatus HttpSampleDecoderFilter::encodeData(Buffer::Instance& data, bool){
-  ENVOY_LOG(info, "The encode data called");
-  if(filter_state_ == FilterState::GetCompass){
-
-    // Fetch the id from request, get cache
-    auto _tmp = engine_.get_cache_from_id(url_);
-    std::string delta = data.toString();
-    // TODO: compass the files
-    std::string whole = delta + _tmp.second;
-    // data = new Buffer::OwnedImpl(delta);
-    data.drain(data.length());
-    data.add(whole);
-  } else if(filter_state_ == FilterState::GetDupSent){
-
-    engine_.set_id_with_cache(url_, data.toString());
+  ENVOY_LOG(info, "The encode data called" + data.toString());
+  if(!flag_){
+    ENVOY_LOG(info, "databricks");
+    return FilterDataStatus::StopIterationAndBuffer;
   }
-
   return FilterDataStatus::Continue;
+  // ENVOY_LOG(info, "The encode data called");
+  // if(filter_state_ == FilterState::GetCompass){
+
+  //   // Fetch the id from request, get cache
+  //   auto _tmp = engine_.get_cache_from_id(url_);
+  //   std::string delta = data.toString();
+  //   // ompass the files
+  //   std::string whole = delta + _tmp.second;
+  //   // data = new Buffer::OwnedImpl(delta);
+  //   data.drain(data.length());
+  //   data.add(whole);
+  // } else if(filter_state_ == FilterState::GetDupSent){
+
+  //   engine_.set_id_with_cache(url_, data.toString());
+  // }
+
+  // return FilterDataStatus::Continue;
 }
 
 Http::FilterTrailersStatus HttpSampleDecoderFilter::encodeTrailers(ResponseTrailerMap&){
@@ -200,40 +245,164 @@ void HttpSampleDecoderFilter::setEncoderFilterCallbacks(StreamEncoderFilterCallb
 void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMessagePtr&& response){
   ENVOY_LOG(info, "onSuccess was invoked");
   if(filter_type_ == FilterType::Get
-    && filter_state_ == FilterState::GetDupSent){
-      if(test_reponse_time_ == ""){
-        ENVOY_LOG(info, "databricks");
-        test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
+    && filter_state_ == FilterState::Null){
+
+    if(test_reponse_time_ == ""){
+      test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
+      cluster_ = std::string(response->headers().get(CL)->value().getStringView());
+    } else {
+      // compare the time
+      std::string new_reponse_time = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
+      if(std::stol(test_reponse_time_) < std::stol(new_reponse_time)){
+        // cluster_ = std::string(request->cluster_->name());
         cluster_ = std::string(response->headers().get(CL)->value().getStringView());
-      } else {
-        // compare the time
-        std::string new_reponse_time = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
-        if(std::stol(test_reponse_time_) < std::stol(new_reponse_time)){
-          ENVOY_LOG(info, "databricks");
-          // cluster_ = std::string(request->cluster_->name());
-          test_reponse_time_ = new_reponse_time;
-          cluster_ = std::string(response->headers().get(CL)->value().getStringView());
-        } else if(std::stol(test_reponse_time_) == std::stol(new_reponse_time)){
-          ENVOY_LOG(info, "databricks");
-          cluster_ = "cluster_1";
-        }
-        decoder_callbacks_->continueDecoding();
+      } else if(std::stol(test_reponse_time_) == std::stol(new_reponse_time)){
+        cluster_ = config_->cluster_;
       }
-  } else if(filter_type_ == FilterType::Post
-    && filter_state_ == FilterState::PostSent){
+      filter_state_ = FilterState::GetDupSent;
 
-    test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
-    decoder_callbacks_->continueDecoding();
+      RequestMessagePtr message(new RequestMessageImpl());
+      message->headers().setPath(url_);
+      message->headers().setHost(cluster_);
+      message->headers().setMethod(Headers::get().MethodValues.Get);
+      test_request_ =
+          config_->cm_.httpAsyncClientForCluster(cluster_)
+              .send(std::move(message), *this,
+              AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
+    }
   } else if(filter_type_ == FilterType::Post
-    && filter_state_ == FilterState::PostCacheUpdate){
+      && filter_state_ == FilterState::Null){
 
-    test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
-    engine_.set_id_with_cache(url_, response->bodyAsString());
-    decoder_callbacks_->continueDecoding();
+      ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
+      
+      test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
+      filter_state_ = FilterState::PostSent;
+      // if there is reponse body
+      // update the cache
+      std::string response_body(response->bodyAsString());
+      if(!response_body.empty()){
+        // update the cache
+        std::string tmp = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
+        engine_.set_id_with_timestamp(url_, std::stoi(tmp));
+        engine_.set_id_with_cache(url_, response_body);
+      }
+
+      // Compare the time with cache
+      auto tmp = engine_.get_timestamp_from_id(url_);
+      if(tmp.first == false || tmp.second < std::stol(test_reponse_time_)){
+        // if cache is outdated
+        RequestMessagePtr message(new RequestMessageImpl());
+        message->headers().setPath(url_);
+        message->headers().setHost(config_->prod_cluster_);
+        message->headers().setMethod(Headers::get().MethodValues.Get);
+        test_request_ =
+            config_->cm_.httpAsyncClientForCluster(cluster_)
+                .send(std::move(message), *this,
+                AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
+        return;
+      } else {
+        // If right, send the right shit to the test cluster
+        // TODO: compass here
+
+        std::string delta;
+        std::string dictionary = engine_.get_cache_from_id(url_).second;
+        open_vcdiff::VCDiffEncoder encoder(dictionary.data(), dictionary.size());
+        encoder.SetFormatFlags(open_vcdiff::VCD_FORMAT_INTERLEAVED);
+        encoder.Encode(request_body_.data(), request_body_.size(), &delta);
+
+        RequestMessagePtr message(new RequestMessageImpl());
+        message->headers().setPath(url_);
+        message->headers().setHost(config_->cluster_);
+        message->headers().setMethod(Headers::get().MethodValues.Post);
+        message->headers().setContentType(std::string("application/json"));
+        message->headers().setContentLength(delta.size());
+        message->headers().addCopy(FidTimestamp2, test_reponse_time_);
+        message->headers().setCopy(FidTimestamp2, test_reponse_time_);
+        message->body() = Buffer::InstancePtr(new Buffer::OwnedImpl(delta));
+        test_request_ =
+            config_->cm_.httpAsyncClientForCluster(config_->cluster_)
+                .send(std::move(message), *this,
+                AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
+      }
+  } else if(filter_state_ == FilterState::GetDupSent){
+    ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
+
+    std::string res;
+    ResponseHeaderMapPtr headers(Http::createHeaderMap<Http::ResponseHeaderMapImpl>(response->headers()));
+    if(cluster_ == config_->cluster_){
+      // Compass
+      open_vcdiff::VCDiffDecoder decoder;
+      std::string dictionary = engine_.get_cache_from_id(url_).second;
+      decoder.Decode(dictionary.data(), dictionary.size(), response->bodyAsString(), &res);
+      headers->setContentLength(res.size());
+    } else {
+      // update cache
+      res = response->bodyAsString();
+      std::string tmp = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
+      engine_.set_id_with_timestamp(url_, std::stoi(tmp));
+      engine_.set_id_with_cache(url_, response->bodyAsString());
+    }
+
+    flag_ = true;
+    decoder_callbacks_->encodeHeaders(std::move(headers), res.empty());
+    if (!res.empty()) {
+      Buffer::OwnedImpl buffer(res);
+      decoder_callbacks_->encodeData(buffer, true);
+    }
+    return;
+
+  } else if(filter_state_ == FilterState::PostSent){
+    std::string response_body(response->bodyAsString());
+    ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders: {}", *decoder_callbacks_, response->headers());
+    ENVOY_LOG(info, "databricks" + response_body);
+    // Http::HeaderMapPtr response_headers{new HeaderMapImpl(response->headers())};
+    ResponseHeaderMapPtr headers(Http::createHeaderMap<Http::ResponseHeaderMapImpl>(response->headers()));
+    flag_ = true;
+    decoder_callbacks_->encodeHeaders(std::move(headers), false);
+    if (!response_body.empty()) {
+      Buffer::OwnedImpl buffer(response_body);
+      decoder_callbacks_->encodeData(buffer, true);
+    }
+    return;
   }
 
   ENVOY_LOG(info, "onSuccess returned");
   return;
+  // if(filter_type_ == FilterType::Get
+  //   && filter_state_ == FilterState::GetDupSent){
+  //     if(test_reponse_time_ == ""){
+  //       ENVOY_LOG(info, "databricks");
+  //       test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
+  //       cluster_ = std::string(response->headers().get(CL)->value().getStringView());
+  //     } else {
+  //       // compare the time
+  //       std::string new_reponse_time = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
+  //       if(std::stol(test_reponse_time_) < std::stol(new_reponse_time)){
+  //         ENVOY_LOG(info, "databricks");
+  //         // cluster_ = std::string(request->cluster_->name());
+  //         test_reponse_time_ = new_reponse_time;
+  //         cluster_ = std::string(response->headers().get(CL)->value().getStringView());
+  //       } else if(std::stol(test_reponse_time_) == std::stol(new_reponse_time)){
+  //         ENVOY_LOG(info, "databricks");
+  //         cluster_ = "cluster_1";
+  //       }
+  //       decoder_callbacks_->continueDecoding();
+  //     }
+  // } else if(filter_type_ == FilterType::Post
+  //   && filter_state_ == FilterState::PostSent){
+
+  //   test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
+  //   decoder_callbacks_->continueDecoding();
+  // } else if(filter_type_ == FilterType::Post
+  //   && filter_state_ == FilterState::PostCacheUpdate){
+
+  //   test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
+  //   engine_.set_id_with_cache(url_, response->bodyAsString());
+  //   decoder_callbacks_->continueDecoding();
+  // }
+
+  // ENVOY_LOG(info, "onSuccess returned");
+  // return;
 }
 
 void HttpSampleDecoderFilter::onFailure(const AsyncClient::Request&, AsyncClient::FailureReason){

@@ -110,9 +110,11 @@ private:
 
   Http::AsyncClient::Request* test_request_{};
   std::string url_;
+  std::string request_body_;
   std::string test_response_body_;
   std::string test_reponse_time_;
   std::string cluster_;
+  bool flag_ = false;
 };
 
 } // namespace Http

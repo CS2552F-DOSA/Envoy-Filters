@@ -1,0 +1,2 @@
+/usr/bin/ar qc libvcdenc.a  CMakeFiles/vcdenc_STATIC.dir/src/blockhash.cc.o CMakeFiles/vcdenc_STATIC.dir/src/encodetable.cc.o CMakeFiles/vcdenc_STATIC.dir/src/instruction_map.cc.o CMakeFiles/vcdenc_STATIC.dir/src/jsonwriter.cc.o CMakeFiles/vcdenc_STATIC.dir/src/vcdiffengine.cc.o CMakeFiles/vcdenc_STATIC.dir/src/vcencoder.cc.o
+/usr/bin/ranlib libvcdenc.a

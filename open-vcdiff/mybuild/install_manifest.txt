@@ -1,0 +1,10 @@
+/usr/local/lib/libvcdcom.a
+/usr/local/lib/libvcdenc.a
+/usr/local/lib/libvcddec.a
+/usr/local/include/google/vcdecoder.h
+/usr/local/include/google/format_extension_flags.h
+/usr/local/include/google/output_string.h
+/usr/local/include/google/codetablewriter_interface.h
+/usr/local/include/google/jsonwriter.h
+/usr/local/include/google/encodetable.h
+/usr/local/include/google/vcencoder.h

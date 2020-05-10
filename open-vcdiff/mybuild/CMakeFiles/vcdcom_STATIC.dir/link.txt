@@ -1,0 +1,2 @@
+/usr/bin/ar qc libvcdcom.a  CMakeFiles/vcdcom_STATIC.dir/src/zlib/adler32.c.o CMakeFiles/vcdcom_STATIC.dir/src/addrcache.cc.o CMakeFiles/vcdcom_STATIC.dir/src/codetable.cc.o CMakeFiles/vcdcom_STATIC.dir/src/logging.cc.o CMakeFiles/vcdcom_STATIC.dir/src/varint_bigendian.cc.o
+/usr/bin/ranlib libvcdcom.a
