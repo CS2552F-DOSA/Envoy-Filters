@@ -28,6 +28,8 @@ envoy_cc_library(
         ":pkg_cc_proto",
         "@envoy//source/exe:envoy_common_lib",
         "@envoy//source/common/http:message_lib",
+        "@envoy//source/common/common:enum_to_int",
+        "@envoy//source/common/http:utility_lib",
     ],
 )
 
