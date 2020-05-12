@@ -41,6 +41,7 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     std::string url = std::string(headers.get(URLPath)->value().getStringView());
     id_ = url;
     if(id_[2] == 'i'){
+      ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders1: {}", *decoder_callbacks_, headers);
       // /ping
       // This is a ping request from envoy filter
       int pos = id_.find("/", 2);
@@ -58,6 +59,7 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
       decoder_callbacks_->encodeHeaders(std::move(response_headers), true);
       return FilterHeadersStatus::StopIteration;
     }
+    ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders1: {}", *decoder_callbacks_, headers);
     return FilterHeadersStatus::Continue;
   } else if (headers.get(Method)->value() == "POST") {
     ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders1: {}", *decoder_callbacks_, headers);
