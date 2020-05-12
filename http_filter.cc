@@ -35,7 +35,7 @@ void HttpSampleDecoderFilter::onDestroy() {}
 
 FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& headers, bool) {
   // headers.EnvoyOriginalPath()->value()
-  // ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders1: {}", *decoder_callbacks_, headers);
+  ENVOY_STREAM_LOG(info, "Dosa::decodeHeaders1: {}", *decoder_callbacks_, headers);
 
   if (headers.get(Method)->value() == "GET") {
     std::string url = std::string(headers.get(URLPath)->value().getStringView());
