@@ -118,13 +118,14 @@ FilterHeadersStatus HttpSampleDecoderFilter::decodeHeaders(RequestHeaderMap& hea
     && FilterState::Null == filter_state_){
       ENVOY_LOG(info, "databricks");
 
-    filter_state_ = FilterState::PostSent;
+    // filter_state_ = FilterState::PostSent;
     filter_type_ = FilterType::Post;
 
     RequestMessagePtr request(new RequestMessageImpl(
       createHeaderMap<RequestHeaderMapImpl>(headers)));
     url_ = std::string(headers.get(URLPath)->value().getStringView());
     request->headers().setPath(std::string("/ping") + url_);
+    request->headers().setMethod(Headers::get().MethodValues.Get);
     request->headers().setHost(config_->prod_cluster_);
     test_request_ =
         config_->cm_.httpAsyncClientForCluster(config_->prod_cluster_)
@@ -311,6 +312,9 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
       cluster_ = std::string(response->headers().get(CL)->value().getStringView());
     } else {
       // compare the time
+
+      ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
+
       std::string new_reponse_time = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
       if(std::stol(test_reponse_time_) < std::stol(new_reponse_time)){
         // cluster_ = std::string(request->cluster_->name());
@@ -335,7 +339,7 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
       ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
       
       test_reponse_time_ = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
-      filter_state_ = FilterState::PostSent;
+      // filter_state_ = FilterState::PostSent;
       // if there is reponse body
       // update the cache
       std::string response_body(response->bodyAsString());
@@ -362,6 +366,8 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
       } else {
         // If right, send the right shit to the test cluster
         // TODO: compass here
+
+        filter_state_ = FilterState::PostSent;
 
         std::string delta;
         std::string dictionary = engine_.get_cache_from_id(url_).second;
@@ -423,7 +429,7 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
     // Http::HeaderMapPtr response_headers{new HeaderMapImpl(response->headers())};
     ResponseHeaderMapPtr headers(Http::createHeaderMap<Http::ResponseHeaderMapImpl>(response->headers()));
     flag_ = true;
-    decoder_callbacks_->encodeHeaders(std::move(headers), false);
+    decoder_callbacks_->encodeHeaders(std::move(headers), true);
     if (!response_body.empty()) {
       Buffer::OwnedImpl buffer(response_body);
       decoder_callbacks_->encodeData(buffer, true);

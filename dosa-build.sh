@@ -25,7 +25,7 @@ git submodule update --init
 mkdir -p dist
 docker run -it --rm -v `pwd`:/source -w /source \
     jzeng9/envoy-dev:latest /bin/bash /source/dosa-build-docker.sh
-docker build -t csci2952fmicrocow/test-service-enovy:latest .
+docker build -t csci2952fmicrocow/test-service-enovy-diff:latest .
 
 if onmaster; then
     # Avoid `set -x` leaking secret info into Travis logs

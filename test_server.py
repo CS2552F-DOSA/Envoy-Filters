@@ -25,7 +25,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_header("cluster", "cluster_1")
         else:
             self.send_header("cluster", "cluster_0")
-        self.send_header("fid_timestamp_unix_ns", 100000)
+        self.send_header("fid_timestamp_unix_ns", int(sys.argv[2]))
         self.end_headers()
         self.wfile.write("<html><head><title>12341234</title></head>\n")
         self.wfile.close()
