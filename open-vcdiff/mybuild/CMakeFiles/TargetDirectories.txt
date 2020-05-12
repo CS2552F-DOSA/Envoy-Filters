@@ -1,8 +1,0 @@
-/source/open-vcdiff/mybuild/CMakeFiles/install/local.dir
-/source/open-vcdiff/mybuild/CMakeFiles/edit_cache.dir
-/source/open-vcdiff/mybuild/CMakeFiles/vcddec_STATIC.dir
-/source/open-vcdiff/mybuild/CMakeFiles/vcdcom_STATIC.dir
-/source/open-vcdiff/mybuild/CMakeFiles/rebuild_cache.dir
-/source/open-vcdiff/mybuild/CMakeFiles/vcdenc_STATIC.dir
-/source/open-vcdiff/mybuild/CMakeFiles/install.dir
-/source/open-vcdiff/mybuild/CMakeFiles/list_install_components.dir

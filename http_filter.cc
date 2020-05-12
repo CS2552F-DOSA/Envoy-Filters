@@ -5,16 +5,22 @@
 #include <cstdint>
 #include <mutex>
 #include <condition_variable> // std::condition_variable
-#include <google/vcdecoder.h>  // Read this file for interface details
-#include <google/vcencoder.h>  // Read this file for interface details
 
 #include "envoy/server/filter_config.h"
 #include "common/http/message_impl.h"
 #include "common/common/enum_to_int.h"
 #include "common/buffer/buffer_impl.h"
 
+
+#include <cstdlib>
+#include <fstream>
+ 
+#include <iostream>
+#include <sstream>
+
 namespace Envoy {
 namespace Http {
+
 
 static LowerCaseString FidTimestamp{":fid_timestamp_unix_ns"};
 static LowerCaseString FidTimestamp2{"fid_timestamp_unix_ns"};
@@ -242,6 +248,60 @@ void HttpSampleDecoderFilter::setEncoderFilterCallbacks(StreamEncoderFilterCallb
   encoder_callbacks_ = &callbacks;
 }
 
+std::string xdeltaEncodeWrapper(std::string& dict, std::string& target){
+  std::ofstream outfile;
+  std::ifstream infile;
+  std::string delta;
+
+  outfile.open("old", std::ios::out | std::ios::trunc);
+  outfile << dict;
+  outfile.close();
+
+  outfile.open("new", std::ios::out | std::ios::trunc);
+  outfile << target;
+  outfile.close();
+
+  // size_t len;
+  // char ch;
+  system("diff old new > delta");
+
+  delta.clear();
+  infile.open("delta", std::ios::in);
+ 
+  std::stringstream ss;
+  ss << infile.rdbuf();
+  delta = ss.str();
+
+  return delta;
+}
+
+std::string xdeltaDecodeWrapper(std::string& dict, std::string& delta){
+  std::ofstream outfile;
+  std::ifstream infile;
+  std::string res;
+
+  outfile.open("old", std::ios::out | std::ios::trunc);
+  outfile << dict;
+  outfile.close();
+
+  outfile.open("delta", std::ios::out | std::ios::trunc);
+  outfile << delta;
+  outfile.close();
+
+  // size_t len;
+  // char ch;
+  system("patch old delta > /dev/null 2>&1");
+
+  // delta.clear();
+  infile.open("old", std::ios::in);
+ 
+  std::stringstream ss;
+  ss << infile.rdbuf();
+  res = ss.str();
+
+  return res;
+}
+
 void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMessagePtr&& response){
   ENVOY_LOG(info, "onSuccess was invoked");
   if(filter_type_ == FilterType::Get
@@ -306,9 +366,11 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
 
         std::string delta;
         std::string dictionary = engine_.get_cache_from_id(url_).second;
-        open_vcdiff::VCDiffEncoder encoder(dictionary.data(), dictionary.size());
-        encoder.SetFormatFlags(open_vcdiff::VCD_FORMAT_INTERLEAVED);
-        encoder.Encode(request_body_.data(), request_body_.size(), &delta);
+
+        delta = xdeltaEncodeWrapper(dictionary, request_body_);
+        // open_vcdiff::VCDiffEncoder encoder(dictionary.data(), dictionary.size());
+        // encoder.SetFormatFlags(open_vcdiff::VCD_FORMAT_INTERLEAVED);
+        // encoder.Encode(request_body_.data(), request_body_.size(), &delta);
 
         RequestMessagePtr message(new RequestMessageImpl());
         message->headers().setPath(url_);
@@ -330,11 +392,14 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
     std::string res;
     ResponseHeaderMapPtr headers(Http::createHeaderMap<Http::ResponseHeaderMapImpl>(response->headers()));
     if(cluster_ == config_->cluster_){
-      // Compass
-      open_vcdiff::VCDiffDecoder decoder;
-      std::string dictionary = engine_.get_cache_from_id(url_).second;
-      decoder.Decode(dictionary.data(), dictionary.size(), response->bodyAsString(), &res);
-      headers->setContentLength(res.size());
+
+
+      // Compass, restore from patches
+      // open_vcdiff::VCDiffDecoder decoder;
+      // std::string dictionary = engine_.get_cache_from_id(url_).second;
+      // decoder.Decode(dictionary.data(), dictionary.size(), response->bodyAsString(), &res);
+      // headers->setContentLength(res.size());
+
     } else {
       // update cache
       res = response->bodyAsString();

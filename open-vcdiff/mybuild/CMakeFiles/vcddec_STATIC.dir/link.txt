@@ -1,2 +1,0 @@
-/usr/bin/ar qc libvcddec.a  CMakeFiles/vcddec_STATIC.dir/src/decodetable.cc.o CMakeFiles/vcddec_STATIC.dir/src/headerparser.cc.o CMakeFiles/vcddec_STATIC.dir/src/vcdecoder.cc.o
-/usr/bin/ranlib libvcddec.a
