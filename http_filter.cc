@@ -167,6 +167,7 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
       }
       filter_state_ = FilterState::GetDupSent;
 
+
       RequestMessagePtr message(new RequestMessageImpl());
       if(cluster_ == config_->cluster_)
         message->headers().setPath(url_);
@@ -174,6 +175,7 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
         message->headers().setPath(url_);
       message->headers().setHost(cluster_);
       message->headers().setMethod(Headers::get().MethodValues.Get);
+      ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, message->headers());
       test_request_ =
           config_->cm_.httpAsyncClientForCluster(cluster_)
               .send(std::move(message), *this,

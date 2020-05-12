@@ -2,3 +2,6 @@ bazel-*
 .vscode
 node_modules
 dist
+delta
+new
+old
