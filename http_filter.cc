@@ -248,10 +248,9 @@ void HttpSampleDecoderFilter::setEncoderFilterCallbacks(StreamEncoderFilterCallb
   encoder_callbacks_ = &callbacks;
 }
 
-std::string xdeltaEncodeWrapper(std::string& dict, std::string& target){
+void xdeltaEncodeWrapper(std::string& dict, std::string& target, std::string& delta){
   std::ofstream outfile;
   std::ifstream infile;
-  std::string delta;
 
   outfile.open("old", std::ios::out | std::ios::trunc);
   outfile << dict;
@@ -272,13 +271,13 @@ std::string xdeltaEncodeWrapper(std::string& dict, std::string& target){
   ss << infile.rdbuf();
   delta = ss.str();
 
-  return delta;
+  return;
 }
 
-std::string xdeltaDecodeWrapper(std::string& dict, std::string& delta){
+void xdeltaDecodeWrapper(std::string& dict, std::string& delta, std::string& res){
   std::ofstream outfile;
   std::ifstream infile;
-  std::string res;
+  // std::string res;
 
   outfile.open("old", std::ios::out | std::ios::trunc);
   outfile << dict;
@@ -299,7 +298,7 @@ std::string xdeltaDecodeWrapper(std::string& dict, std::string& delta){
   ss << infile.rdbuf();
   res = ss.str();
 
-  return res;
+  return;
 }
 
 void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMessagePtr&& response){
@@ -367,7 +366,7 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
         std::string delta;
         std::string dictionary = engine_.get_cache_from_id(url_).second;
 
-        delta = xdeltaEncodeWrapper(dictionary, request_body_);
+        xdeltaEncodeWrapper(dictionary, request_body_, delta);
         // open_vcdiff::VCDiffEncoder encoder(dictionary.data(), dictionary.size());
         // encoder.SetFormatFlags(open_vcdiff::VCD_FORMAT_INTERLEAVED);
         // encoder.Encode(request_body_.data(), request_body_.size(), &delta);
@@ -393,12 +392,13 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
     ResponseHeaderMapPtr headers(Http::createHeaderMap<Http::ResponseHeaderMapImpl>(response->headers()));
     if(cluster_ == config_->cluster_){
 
-
       // Compass, restore from patches
+      std::string dictionary = engine_.get_cache_from_id(url_).second;
+      std::string delta = response->bodyAsString();
+      xdeltaDecodeWrapper(dictionary, delta, res);
+      headers->setContentLength(res.size());
       // open_vcdiff::VCDiffDecoder decoder;
-      // std::string dictionary = engine_.get_cache_from_id(url_).second;
       // decoder.Decode(dictionary.data(), dictionary.size(), response->bodyAsString(), &res);
-      // headers->setContentLength(res.size());
 
     } else {
       // update cache
