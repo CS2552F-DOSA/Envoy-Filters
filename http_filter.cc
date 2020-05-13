@@ -270,7 +270,12 @@ void xdeltaEncodeWrapper(std::string& dict, std::string& target, std::string& de
  
   std::stringstream ss;
   ss << infile.rdbuf();
-  delta = ss.str();
+  // delta = "{\"lines\": [\"*" + ss.str() + "*\"]}";
+  // for(uint iter=0; iter<delta.length(); iter++){
+  //   if(delta[iter] == '\n')
+  //     delta[iter] = '@';
+  // }
+  delta = "{\"lines\": [\"1234\"]}";
 
   return;
 }
@@ -279,6 +284,14 @@ void xdeltaDecodeWrapper(std::string& dict, std::string& delta, std::string& res
   std::ofstream outfile;
   std::ifstream infile;
   // std::string res;
+
+  // int idx1 = delta.find("*");
+  // int idx2 = delta.find("*", idx1+1);
+  // delta = delta.substr(idx1+1, idx2 - idx1 - 1);
+  // for(uint iter=0; iter<delta.length(); iter++){
+  //   if(delta[iter] == '@')
+  //     delta[iter] = '\n';
+  // }
 
   outfile.open("old", std::ios::out | std::ios::trunc);
   outfile << dict;
@@ -295,9 +308,9 @@ void xdeltaDecodeWrapper(std::string& dict, std::string& delta, std::string& res
   // delta.clear();
   infile.open("old", std::ios::in);
  
-  std::stringstream ss;
-  ss << infile.rdbuf();
-  res = ss.str();
+  // std::stringstream ss;
+  // ss << infile.rdbuf();
+  res = dict;
 
   return;
 }
@@ -343,29 +356,37 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
       // if there is reponse body
       // update the cache
       std::string response_body(response->bodyAsString());
+      ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
       if(!response_body.empty()){
         // update the cache
+        ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
         std::string tmp = std::string(response->headers().get(FidTimestamp2)->value().getStringView());
         engine_.set_id_with_timestamp(url_, std::stoi(tmp));
         engine_.set_id_with_cache(url_, response_body);
       }
+      ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
 
       // Compare the time with cache
       auto tmp = engine_.get_timestamp_from_id(url_);
+      ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
       if(tmp.first == false || tmp.second < std::stol(test_reponse_time_)){
         // if cache is outdated
         RequestMessagePtr message(new RequestMessageImpl());
         message->headers().setPath(url_);
         message->headers().setHost(config_->prod_cluster_);
         message->headers().setMethod(Headers::get().MethodValues.Get);
+        ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
         test_request_ =
-            config_->cm_.httpAsyncClientForCluster(cluster_)
+            config_->cm_.httpAsyncClientForCluster(config_->prod_cluster_)
                 .send(std::move(message), *this,
                 AsyncClient::RequestOptions().setTimeout(std::chrono::milliseconds(5000)));
+                ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
         return;
       } else {
         // If right, send the right shit to the test cluster
         // TODO: compass here
+
+        ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
 
         filter_state_ = FilterState::PostSent;
 
@@ -376,6 +397,7 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
         // open_vcdiff::VCDiffEncoder encoder(dictionary.data(), dictionary.size());
         // encoder.SetFormatFlags(open_vcdiff::VCD_FORMAT_INTERLEAVED);
         // encoder.Encode(request_body_.data(), request_body_.size(), &delta);
+        ENVOY_STREAM_LOG(info, "Dosa::encodeHeaders: {}", *encoder_callbacks_, response->headers());
 
         RequestMessagePtr message(new RequestMessageImpl());
         message->headers().setPath(url_);
@@ -429,7 +451,7 @@ void HttpSampleDecoderFilter::onSuccess(const AsyncClient::Request&, ResponseMes
     // Http::HeaderMapPtr response_headers{new HeaderMapImpl(response->headers())};
     ResponseHeaderMapPtr headers(Http::createHeaderMap<Http::ResponseHeaderMapImpl>(response->headers()));
     flag_ = true;
-    decoder_callbacks_->encodeHeaders(std::move(headers), true);
+    decoder_callbacks_->encodeHeaders(std::move(headers), false);
     if (!response_body.empty()) {
       Buffer::OwnedImpl buffer(response_body);
       decoder_callbacks_->encodeData(buffer, true);
