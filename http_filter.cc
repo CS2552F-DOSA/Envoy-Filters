@@ -270,12 +270,13 @@ void xdeltaEncodeWrapper(std::string& dict, std::string& target, std::string& de
  
   std::stringstream ss;
   ss << infile.rdbuf();
+  delta = ss.str();
   // delta = "{\"lines\": [\"*" + ss.str() + "*\"]}";
   // for(uint iter=0; iter<delta.length(); iter++){
   //   if(delta[iter] == '\n')
   //     delta[iter] = '@';
   // }
-  delta = "{\"lines\": [\"1234\"]}";
+  // delta = "{\"lines\": [\"1234\"]}";
 
   return;
 }
@@ -283,7 +284,7 @@ void xdeltaEncodeWrapper(std::string& dict, std::string& target, std::string& de
 void xdeltaDecodeWrapper(std::string& dict, std::string& delta, std::string& res){
   std::ofstream outfile;
   std::ifstream infile;
-  // std::string res;
+  std::string res;
 
   // int idx1 = delta.find("*");
   // int idx2 = delta.find("*", idx1+1);
@@ -308,8 +309,8 @@ void xdeltaDecodeWrapper(std::string& dict, std::string& delta, std::string& res
   // delta.clear();
   infile.open("old", std::ios::in);
  
-  // std::stringstream ss;
-  // ss << infile.rdbuf();
+  std::stringstream ss;
+  ss << infile.rdbuf();
   res = dict;
 
   return;
